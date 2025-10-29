@@ -8,20 +8,28 @@ toc: false
 
 ```js
 const preprints = FileAttachment("data/preprints-by-date.csv").csv({typed: true});
+const contributors = FileAttachment("data/contributors-by-date.csv").csv({typed: true});
 ```
 
 ```js
 // Parse dates and calculate totals
 const data = preprints.map(d => ({...d, date: new Date(d.date)}));
 const total = d3.sum(data, d => d.count);
+
+const contributorData = contributors.map(d => ({...d, date: new Date(d.date)}));
+const totalContributors = d3.sum(contributorData, d => d.count);
 ```
 
 <!-- Cards with totals -->
 
-<div class="grid grid-cols-1">
+<div class="grid grid-cols-2">
   <div class="card">
     <h2>Total Preprints</h2>
     <span class="big">${total.toLocaleString("en-US")}</span>
+  </div>
+  <div class="card">
+    <h2>Total Contributors</h2>
+    <span class="big">${totalContributors.toLocaleString("en-US")}</span>
   </div>
 </div>
 
@@ -108,7 +116,7 @@ function timeSeriesChart(data, {width}) {
     .attr("clip-path", "url(#clip)")
     .attr("fill", "none")
     .attr("stroke", "var(--theme-foreground-focus)")
-    .attr("stroke-width", 2)
+    .attr("stroke-width", 1)
     .attr("d", line);
 
   // Tooltip
@@ -172,7 +180,7 @@ function timeSeriesChart(data, {width}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-  <h2>Weekly Preprints</h2>
+  <h2>New preprints per week</h2>
     ${resize((width) => timeSeriesChart(data, {width}))}
   </div>
 </div>
@@ -203,6 +211,44 @@ function yearlyChart(data, {width}) {
 <div class="grid grid-cols-1">
   <div class="card">
     ${resize((width) => yearlyChart(data, {width}))}
+  </div>
+</div>
+
+<!-- Contributors time series -->
+
+<div class="grid grid-cols-1">
+  <div class="card">
+  <h2>New contributors per week</h2>
+    ${resize((width) => timeSeriesChart(contributorData, {width}))}
+  </div>
+</div>
+
+<!-- Contributors yearly totals -->
+
+```js
+function contributorYearlyChart(data, {width}) {
+  const yearlyData = Array.from(
+    d3.rollup(data, v => d3.sum(v, d => d.count), d => d.date.getFullYear()),
+    ([year, count]) => ({year, count})
+  ).sort((a, b) => a.year - b.year);
+
+  return Plot.plot({
+    title: "Contributors by year",
+    width,
+    height: 400,
+    x: {label: "Year"},
+    y: {grid: true, label: "Total contributors"},
+    marks: [
+      Plot.barY(yearlyData, {x: "year", y: "count", fill: "var(--theme-foreground-focus)", tip: true}),
+      Plot.ruleY([0])
+    ]
+  });
+}
+```
+
+<div class="grid grid-cols-1">
+  <div class="card">
+    ${resize((width) => contributorYearlyChart(contributorData, {width}))}
   </div>
 </div>
 
