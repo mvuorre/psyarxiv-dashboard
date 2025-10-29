@@ -20,6 +20,70 @@ const contributorData = contributors.map(d => ({...d, date: new Date(d.date)}));
 const totalContributors = d3.sum(contributorData, d => d.count);
 ```
 
+```js
+// Aggregation function
+function aggregateData(data, granularity) {
+  if (granularity === "daily") return data;
+
+  let keyFn;
+  if (granularity === "weekly") {
+    keyFn = d => {
+      const date = new Date(d.date);
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+      return date.getTime();
+    };
+  } else if (granularity === "monthly") {
+    keyFn = d => new Date(d.date.getFullYear(), d.date.getMonth(), 1).getTime();
+  } else if (granularity === "yearly") {
+    keyFn = d => new Date(d.date.getFullYear(), 0, 1).getTime();
+  }
+
+  const grouped = d3.rollup(data, v => d3.sum(v, d => d.count), keyFn);
+  return Array.from(grouped, ([time, count]) => ({
+    date: new Date(time),
+    count
+  })).sort((a, b) => a.date - b.date);
+}
+```
+
+```js
+// Date formatting helper
+function formatDate(date, granularity) {
+  if (granularity === "daily") {
+    return date.toISOString().split('T')[0];
+  } else if (granularity === "weekly") {
+    return getWeek(date);
+  } else if (granularity === "monthly") {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  } else if (granularity === "yearly") {
+    return String(date.getFullYear());
+  }
+}
+```
+
+```js
+const preprintsGranularity = view(Inputs.radio(
+  ["daily", "weekly", "monthly", "yearly"],
+  {label: "Preprints granularity", value: "weekly"}
+));
+```
+
+```js
+const aggregatedPreprints = aggregateData(data, preprintsGranularity);
+```
+
+```js
+const contributorsGranularity = view(Inputs.radio(
+  ["daily", "weekly", "monthly", "yearly"],
+  {label: "Contributors granularity", value: "weekly"}
+));
+```
+
+```js
+const aggregatedContributors = aggregateData(contributorData, contributorsGranularity);
+```
+
 <!-- Cards with totals -->
 
 <div class="grid grid-cols-2">
@@ -48,7 +112,7 @@ function getWeek(date) {
 ```
 
 ```js
-function timeSeriesChart(data, {width}) {
+function timeSeriesChart(data, {width, granularity}) {
   const height = 400;
   const margin = {top: 40, right: 20, bottom: 30, left: 60};
   const innerWidth = width - margin.left - margin.right;
@@ -153,7 +217,7 @@ function timeSeriesChart(data, {width}) {
     if (d) {
       tooltip.style("display", null)
         .attr("transform", `translate(${x(d.date)},${y(d.count)})`);
-      tooltipText.text(`${getWeek(d.date)}: ${d.count}`);
+      tooltipText.text(`${formatDate(d.date, granularity)}: ${d.count}`);
     }
   });
 
@@ -180,37 +244,8 @@ function timeSeriesChart(data, {width}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-  <h2>New preprints per week</h2>
-    ${resize((width) => timeSeriesChart(data, {width}))}
-  </div>
-</div>
-
-<!-- Yearly totals -->
-
-```js
-function yearlyChart(data, {width}) {
-  const yearlyData = Array.from(
-    d3.rollup(data, v => d3.sum(v, d => d.count), d => d.date.getFullYear()),
-    ([year, count]) => ({year, count})
-  ).sort((a, b) => a.year - b.year);
-
-  return Plot.plot({
-    title: "Preprints by year",
-    width,
-    height: 400,
-    x: {label: "Year"},
-    y: {grid: true, label: "Total preprints"},
-    marks: [
-      Plot.barY(yearlyData, {x: "year", y: "count", fill: "var(--theme-foreground-focus)", tip: true}),
-      Plot.ruleY([0])
-    ]
-  });
-}
-```
-
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => yearlyChart(data, {width}))}
+    <h2>New preprints per ${preprintsGranularity.slice(0, -2)}</h2>
+    ${resize((width) => timeSeriesChart(aggregatedPreprints, {width, granularity: preprintsGranularity}))}
   </div>
 </div>
 
@@ -218,37 +253,8 @@ function yearlyChart(data, {width}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-  <h2>New contributors per week</h2>
-    ${resize((width) => timeSeriesChart(contributorData, {width}))}
-  </div>
-</div>
-
-<!-- Contributors yearly totals -->
-
-```js
-function contributorYearlyChart(data, {width}) {
-  const yearlyData = Array.from(
-    d3.rollup(data, v => d3.sum(v, d => d.count), d => d.date.getFullYear()),
-    ([year, count]) => ({year, count})
-  ).sort((a, b) => a.year - b.year);
-
-  return Plot.plot({
-    title: "Contributors by year",
-    width,
-    height: 400,
-    x: {label: "Year"},
-    y: {grid: true, label: "Total contributors"},
-    marks: [
-      Plot.barY(yearlyData, {x: "year", y: "count", fill: "var(--theme-foreground-focus)", tip: true}),
-      Plot.ruleY([0])
-    ]
-  });
-}
-```
-
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => contributorYearlyChart(contributorData, {width}))}
+    <h2>New contributors per ${contributorsGranularity.slice(0, -2)}</h2>
+    ${resize((width) => timeSeriesChart(aggregatedContributors, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
 

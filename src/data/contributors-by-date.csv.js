@@ -6,14 +6,14 @@ async function json(url) {
   return response.json();
 }
 
-// SQL query to get weekly counts of contributors
+// SQL query to get daily counts of contributors
 const sql = `
   SELECT
-    DATE(date_registered, 'weekday 0', '-6 days') as week_start,
+    DATE(date_registered) as date,
     COUNT(*) as count
   FROM contributors
-  GROUP BY week_start
-  ORDER BY week_start
+  GROUP BY date
+  ORDER BY date
 `;
 
 // Fetch data from Datasette

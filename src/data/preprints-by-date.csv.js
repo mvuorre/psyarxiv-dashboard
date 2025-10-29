@@ -6,15 +6,15 @@ async function json(url) {
   return response.json();
 }
 
-// SQL query to get weekly counts of preprints
+// SQL query to get daily counts of preprints
 const sql = `
   SELECT
-    DATE(date_created, 'weekday 0', '-6 days') as week_start,
+    DATE(date_created) as date,
     COUNT(*) as count
   FROM preprints
   WHERE is_latest_version = 1
-  GROUP BY week_start
-  ORDER BY week_start
+  GROUP BY date
+  ORDER BY date
 `;
 
 // Fetch data from Datasette
