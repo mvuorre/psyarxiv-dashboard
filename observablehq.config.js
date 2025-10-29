@@ -25,10 +25,10 @@ export default {
   // Some additional configuration options and their defaults:
   // theme: "default", // try "light", "dark", "slate", etc.
   // header: "", // what to show in the header (HTML)
-  // footer: "Built with Observable.", // what to show in the footer (HTML)
+  footer: `Built by <a href="https://vuorre.com">Matti</a> with <a href="https://observablehq.com/framework/">Observable</a> (<a href="https://github.com/mvuorre/tbd">Source</a>). Last updated on ${new Date().toISOString().split('T')[0]}.`, // what to show in the footer (HTML)
   // sidebar: true, // whether to show the sidebar
   // toc: true, // whether to show the table of contents
-  // pager: true, // whether to show previous & next links in the footer
+  pager: false, // whether to show previous & next links in the footer
   // output: "dist", // path to the output root for build
   // search: true, // activate search
   // linkify: true, // convert URLs in Markdown to links

@@ -57,8 +57,7 @@ function timeSeriesChart(data, {width}) {
     .attr("y", 20)
     .attr("text-anchor", "middle")
     .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text("Weekly preprints");
+    .style("font-weight", "bold");
 
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -173,6 +172,7 @@ function timeSeriesChart(data, {width}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
+  <h2>Weekly Preprints</h2>
     ${resize((width) => timeSeriesChart(data, {width}))}
   </div>
 </div>

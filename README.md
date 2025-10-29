@@ -1,6 +1,10 @@
 # PsyArXiv Dashboard
 
-This is an [Observable Framework](https://observablehq.com/framework/) app. To install the required dependencies, run:
+An [Observable Framework](https://observablehq.com/framework/) dashboard for [PsyArXiv](https://psyarxiv.com/) preprint metadata and submission information.
+
+## Development
+
+Install requirements:
 
 ```
 npm install
