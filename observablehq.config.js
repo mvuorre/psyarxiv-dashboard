@@ -3,18 +3,14 @@ export default {
   // The app’s title; used in the sidebar and webpage titles.
   title: "PsyArXiv Dashboard",
 
-  // The pages and sections in the sidebar. If you don’t specify this option,
+  // The pages and sections in the sidebar. If you don't specify this option,
   // all pages will be listed in alphabetical order. Listing pages explicitly
   // lets you organize them into sections and have unlisted pages.
-  // pages: [
-  //   {
-  //     name: "Examples",
-  //     pages: [
-  //       {name: "Dashboard", path: "/example-dashboard"},
-  //       {name: "Report", path: "/example-report"}
-  //     ]
-  //   }
-  // ],
+  pages: [
+    {name: "Home", path: "/"},
+    {name: "Dashboard", path: "/dashboard"},
+    {name: "Affiliations", path: "/affiliations"}
+  ],
 
   // Content to add to the head of the page, e.g. for a favicon:
   head: '<link rel="icon" href="pax-logo-32.png" type="image/png" sizes="32x32">',
