@@ -8,7 +8,8 @@ export default {
   // lets you organize them into sections and have unlisted pages.
   pages: [
     {name: "Home", path: "/"},
-    {name: "Dashboard", path: "/dashboard"},
+    {name: "Preprints", path: "/preprints"},
+    {name: "Contributors", path: "/contributors"},
     {name: "Affiliations", path: "/affiliations"}
   ],
 

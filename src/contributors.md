@@ -1,21 +1,17 @@
 ---
 theme: dashboard
-title: Preprints
+title: Contributors
 toc: false
 ---
 
-# PsyArXiv Preprints
+# PsyArXiv Contributors
 
 ```js
-const preprints = FileAttachment("data/preprints-by-date.csv").csv({typed: true});
 const contributors = FileAttachment("data/contributors-by-date.csv").csv({typed: true});
 ```
 
 ```js
 // Parse dates and calculate totals
-const data = preprints.map(d => ({...d, date: new Date(d.date)}));
-const total = d3.sum(data, d => d.count);
-
 const contributorData = contributors.map(d => ({...d, date: new Date(d.date)}));
 const totalContributors = d3.sum(contributorData, d => d.count);
 ```
@@ -62,16 +58,14 @@ function formatDate(date, granularity) {
 }
 ```
 
-```js
-const preprintsGranularity = view(Inputs.radio(
-  ["daily", "weekly", "monthly", "yearly"],
-  {label: "Preprints granularity", value: "weekly"}
-));
-```
+<!-- Card with total -->
 
-```js
-const aggregatedPreprints = aggregateData(data, preprintsGranularity);
-```
+<div class="grid grid-cols-1">
+  <div class="card">
+    <h2>Total Contributors</h2>
+    <span class="big">${totalContributors.toLocaleString("en-US")}</span>
+  </div>
+</div>
 
 ```js
 const contributorsGranularity = view(Inputs.radio(
@@ -83,19 +77,6 @@ const contributorsGranularity = view(Inputs.radio(
 ```js
 const aggregatedContributors = aggregateData(contributorData, contributorsGranularity);
 ```
-
-<!-- Cards with totals -->
-
-<div class="grid grid-cols-2">
-  <div class="card">
-    <h2>Total Preprints</h2>
-    <span class="big">${total.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Total Contributors</h2>
-    <span class="big">${totalContributors.toLocaleString("en-US")}</span>
-  </div>
-</div>
 
 <!-- Time series -->
 
@@ -244,18 +225,9 @@ function timeSeriesChart(data, {width, granularity}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>New preprints per ${preprintsGranularity.slice(0, -2)}</h2>
-    ${resize((width) => timeSeriesChart(aggregatedPreprints, {width, granularity: preprintsGranularity}))}
-  </div>
-</div>
-
-<!-- Contributors time series -->
-
-<div class="grid grid-cols-1">
-  <div class="card">
     <h2>New contributors per ${contributorsGranularity.slice(0, -2)}</h2>
     ${resize((width) => timeSeriesChart(aggregatedContributors, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
 
-Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com). Only latest version of preprints included.
+Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).

@@ -2,11 +2,18 @@
 title: Contributor Affiliations
 ---
 
-# Contributor Affiliations
+# PsyArXiv Contributor Affiliations
 
 ```js
 const affiliations = FileAttachment("data/contributors-by-affiliation.csv").csv({typed: true});
 ```
+
+<div class="grid grid-cols-1">
+  <div class="card">
+    <h2>Total Unique Institutions</h2>
+    <span class="big">${affiliations.length.toLocaleString()}</span>
+  </div>
+</div>
 
 ```js
 const topN = view(Inputs.range([10, 200], {value: 20, step: 10, label: "Show top N institutions"}));
