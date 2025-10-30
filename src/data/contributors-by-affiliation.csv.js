@@ -6,21 +6,59 @@ async function json(url) {
   return response.json();
 }
 
-const sql = `
+// Query 1: Count unique contributors per institution (all affiliations ever)
+const contributorSql = `
   SELECT
     json_extract(value, '$.institution') as institution,
-    COUNT(*) as count
-  FROM contributors, json_each(contributors.employment)
+    COUNT(DISTINCT c.osf_user_id) as contributor_count
+  FROM contributors c, json_each(c.employment)
   WHERE json_extract(value, '$.institution') IS NOT NULL
   GROUP BY institution
-  ORDER BY count DESC
 `;
 
-const url = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
-const response = await json(url);
-const data = response.rows.map(row => ({
-  institution: row[0],
-  count: row[1]
+// Query 2: Count preprints per institution (current affiliations only, latest versions only)
+const preprintSql = `
+  SELECT
+    json_extract(value, '$.institution') as institution,
+    COUNT(DISTINCT pc.preprint_id) as preprint_count
+  FROM preprint_contributors pc
+  JOIN contributors c ON pc.osf_user_id = c.osf_user_id,
+       json_each(c.employment)
+  WHERE pc.bibliographic = 1
+    AND pc.is_latest_version = 1
+    AND json_extract(value, '$.ongoing') = 1
+    AND json_extract(value, '$.institution') IS NOT NULL
+  GROUP BY institution
+`;
+
+// Fetch both queries sequentially to avoid Datasette timeout issues
+const contributorUrl = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(contributorSql)}`;
+const preprintUrl = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(preprintSql)}`;
+
+const contributorResponse = await json(contributorUrl);
+const preprintResponse = await json(preprintUrl);
+
+// Create maps for easy lookup
+const contributorMap = new Map(
+  contributorResponse.rows.map(row => [row[0], row[1]])
+);
+const preprintMap = new Map(
+  preprintResponse.rows.map(row => [row[0], row[1]])
+);
+
+// Merge results - use all institutions from either query
+const allInstitutions = new Set([
+  ...contributorMap.keys(),
+  ...preprintMap.keys()
+]);
+
+const data = Array.from(allInstitutions).map(institution => ({
+  institution,
+  contributor_count: contributorMap.get(institution) || 0,
+  preprint_count: preprintMap.get(institution) || 0
 }));
+
+// Sort by preprint count descending
+data.sort((a, b) => b.preprint_count - a.preprint_count);
 
 process.stdout.write(csvFormat(data));
