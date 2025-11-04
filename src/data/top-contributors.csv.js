@@ -10,7 +10,7 @@ const sql = `
   SELECT
     full_name as contributor_name,
     n_preprints as preprint_count
-  FROM contributors
+  FROM contributors_with_counts
   WHERE full_name IS NOT NULL
     AND n_preprints > 0
   ORDER BY n_preprints DESC

@@ -1,7 +1,5 @@
 ---
-theme: dashboard
 title: Contributors
-toc: false
 ---
 
 # PsyArXiv Contributors
