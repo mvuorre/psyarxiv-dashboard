@@ -124,11 +124,6 @@ Inputs.table(search, {
     contributor_count: "Contributors",
     preprint_count: "Preprints"
   },
-  width: {
-    institution: 500,
-    contributor_count: 120,
-    preprint_count: 120
-  },
   select: false
 })
 ```
