@@ -3,16 +3,6 @@ export default {
   // The app’s title; used in the sidebar and webpage titles.
   title: "PsyArXiv Dashboard",
 
-  // The pages and sections in the sidebar. If you don't specify this option,
-  // all pages will be listed in alphabetical order. Listing pages explicitly
-  // lets you organize them into sections and have unlisted pages.
-  pages: [
-    {name: "Home", path: "/"},
-    {name: "Preprints", path: "/preprints"},
-    {name: "Contributors", path: "/contributors"},
-    {name: "Affiliations", path: "/affiliations"}
-  ],
-
   // Content to add to the head of the page, e.g. for a favicon:
   head: '<link rel="icon" href="pax-logo-32.png" type="image/png" sizes="32x32">',
 
@@ -21,7 +11,8 @@ export default {
 
   // Some additional configuration options and their defaults:
   // theme: "default", // try "light", "dark", "slate", etc.
-  // header: "", // what to show in the header (HTML)
+  header: '<nav style="display: flex; gap: 1.5rem; padding: 0.5rem 0;"><a href="/">Home</a><a href="/preprints">Preprints</a><a href="/contributors">Contributors</a><a href="/affiliations">Affiliations</a></nav>',
+  sidebar: false,
   footer: `Built by <a href="https://vuorre.com">Matti</a> with <a href="https://observablehq.com/framework/">Observable</a> (<a href="https://github.com/mvuorre/psyarxiv-dashboard">Source</a>). Last updated on ${new Date().toISOString().split('T')[0]}.`, // what to show in the footer (HTML)
   // sidebar: true, // whether to show the sidebar
   // toc: true, // whether to show the table of contents
