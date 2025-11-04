@@ -74,6 +74,7 @@ function timeSeriesChart(data, {width, granularity}) {
     .attr("x", width / 2)
     .attr("y", 20)
     .attr("text-anchor", "middle")
+    .attr("fill", "currentColor")
     .style("font-size", "16px")
     .style("font-weight", "bold");
 
@@ -104,7 +105,7 @@ function timeSeriesChart(data, {width, granularity}) {
     .attr("transform", `translate(0,${innerHeight})`)
     .call(d3.axisBottom(x));
 
-  const yAxis = g.append("g")
+  g.append("g")
     .call(d3.axisLeft(y).ticks(6));
 
   // Grid lines

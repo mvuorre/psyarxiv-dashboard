@@ -77,13 +77,13 @@ const topNContributors = topContributors.slice(0, topN);
 Plot.plot({
   marginLeft: 200,
   height: Math.max(400, topN * 20),
-  x: {label: "Number of preprints"},
+  x: {label: "Number of preprints", grid: true},
   y: {label: null},
   marks: [
     Plot.barX(topNContributors, {
       x: "preprint_count",
       y: "contributor_name",
-      fill: "preprint_count",
+      fill: "var(--theme-foreground-focus)",
       sort: {y: "-x"},
       tip: true
     })
@@ -96,6 +96,8 @@ Plot.plot({
 ```js
 const search = view(Inputs.search(topContributors, {placeholder: "Search contributors..."}));
 ```
+
+<div style="max-width: 800px;">
 
 ```js
 Inputs.table(search, {
@@ -110,12 +112,12 @@ Inputs.table(search, {
 })
 ```
 
+</div>
+
 ---
 
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
-**Preprint counts**: Only bibliographic authors on the latest version of each preprint are counted.
-
-**Important limitations**: Rankings of individual contributors should be interpreted with caution. Publication counts are influenced by many factors including field norms, career stage, collaboration patterns, and data quality. As with any metric, there is a risk that making these numbers visible could create perverse incentives (Goodhart's law). This data is provided for transparency and aggregate analysis, not for individual comparison or evaluation.
+Only bibliographic authors on the latest version of each preprint are counted. Rankings of individual contributors should be interpreted with caution. Publication counts are influenced by many factors including field norms, career stage, collaboration patterns, and data quality. As with any metric, there is a risk that making these numbers visible could create perverse incentives (Goodhart's law). This data is provided for transparency and aggregate analysis, not for individual comparison or evaluation.

@@ -72,13 +72,13 @@ const topAffiliations = affiliations.slice(0, topN);
 Plot.plot({
   marginLeft: 200,
   height: Math.max(400, topN * 20),
-  x: {label: "Number of contributors"},
+  x: {label: "Number of contributors", grid: true},
   y: {label: null},
   marks: [
     Plot.barX(topAffiliations, {
       x: "contributor_count",
       y: "institution",
-      fill: "contributor_count",
+      fill: "var(--theme-foreground-focus)",
       sort: {y: "-x"},
       tip: true
     })
@@ -96,13 +96,13 @@ const topByPreprints = affiliations.slice(0, topN);
 Plot.plot({
   marginLeft: 200,
   height: Math.max(400, topN * 20),
-  x: {label: "Number of preprints"},
+  x: {label: "Number of preprints", grid: true},
   y: {label: null},
   marks: [
     Plot.barX(topByPreprints, {
       x: "preprint_count",
       y: "institution",
-      fill: "preprint_count",
+      fill: "var(--theme-foreground-focus)",
       sort: {y: "-x"},
       tip: true
     })
@@ -115,6 +115,8 @@ Plot.plot({
 ```js
 const search = view(Inputs.search(affiliations, {placeholder: "Search institutions..."}));
 ```
+
+<div style="max-width: 1000px;">
 
 ```js
 Inputs.table(search, {
@@ -130,21 +132,22 @@ Inputs.table(search, {
 })
 ```
 
+</div>
+
 ---
 
 ## Methodology and Data Notes
 
-- **Total unique institutions**: ${affiliations.length.toLocaleString()}
-- **Data source**: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com)
+Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
-**Contributor counts**: Each unique contributor is counted once per institution that appears anywhere in their employment history (past or present positions).
+Contributor counts: Each unique contributor is counted once per institution that appears anywhere in their employment history (past or present positions).
 
-**Preprint counts**:
+Preprint counts:
 - Only latest versions of preprints are counted
 - Only bibliographic authors are counted
 - Only current/ongoing affiliations are credited
 
-**Limitations**: Affiliations are extracted as-is from OSF users' self-reported metadata. This means:
+Limitations: Affiliations are extracted as-is from OSF users' self-reported metadata. This means:
 - Institution names may have spelling variations or inconsistencies
 - Employment history completeness and accuracy varies by user
 - Users may not keep their "ongoing" status updated

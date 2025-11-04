@@ -128,6 +128,7 @@ function forceGraph(data, {
       .attr("x", width / 2)
       .attr("y", height / 2)
       .attr("text-anchor", "middle")
+      .attr("fill", "currentColor")
       .text(data === null ? "Click 'Show Network' to load data" : "No coauthorship data available");
 
     return svg.node();
@@ -176,6 +177,7 @@ function forceGraph(data, {
     .text(d => d.name)
     .attr("font-size", d => d.isCenter ? 12 : 10)
     .attr("font-weight", d => d.isCenter ? "bold" : "normal")
+    .attr("fill", "currentColor")
     .attr("dx", 8)
     .attr("dy", 4);
 
@@ -242,4 +244,4 @@ function forceGraph(data, {
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
-**Coauthorship**: Only bibliographic authors on the latest version of each preprint are included. Link thickness represents the number of shared preprints between two authors. The network shows not only direct collaborations with the selected author, but also connections among their coauthors.
+Only bibliographic authors on the latest version of each preprint are included. Link thickness represents the number of shared preprints between two authors.

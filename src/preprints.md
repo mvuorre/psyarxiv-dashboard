@@ -55,4 +55,8 @@ const displayPreprints = preprintsCumulative === "cumulative" ? toCumulative(agg
   </div>
 </div>
 
+---
+
+## Methodology and Data Notes
+
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com). Only latest version of preprints included.
