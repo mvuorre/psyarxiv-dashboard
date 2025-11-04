@@ -225,7 +225,7 @@ function timeSeriesChart(data, {width, granularity}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>New contributors per ${contributorsGranularity.slice(0, -2)}</h2>
+    <h2>New ${contributorsGranularity} contributors</h2>
     ${resize((width) => timeSeriesChart(aggregatedContributors, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
