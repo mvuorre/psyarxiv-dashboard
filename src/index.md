@@ -7,10 +7,6 @@ toc: false
   <img src="under-construction.gif" alt="Under construction"/>
 </div>
 
-
----
-
-
 <style>
 
 .hero {
@@ -30,10 +26,7 @@ toc: false
   font-size: 14vw;
   font-weight: 600;
   line-height: 1;
-  background: linear-gradient(30deg, var(--theme-foreground-focus), currentColor);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--theme-foreground-focus);
 }
 
 @media (min-width: 640px) {
