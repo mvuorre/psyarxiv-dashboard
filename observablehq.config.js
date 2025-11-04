@@ -10,12 +10,12 @@ export default {
   root: "src",
 
   // Some additional configuration options and their defaults:
-  // theme: "default", // try "light", "dark", "slate", etc.
-  header: '<nav style="display: flex; gap: 1.5rem; padding: 0.5rem 0; align-items: center;"><img src="pax-dashboard-small.png" style="height: 2rem;"></img><a href="/">Home</a><a href="/preprints">Preprints</a><a href="/contributors">Contributors</a><a href="/affiliations">Affiliations</a></nav>',
+  theme: "air", // try "light", "dark", "slate", etc.
+  header: '<nav style="display: flex; gap: 1.5rem; padding: 0.5rem 0; align-items: center;"><img src="pax-dashboard-small.png" style="height: 2rem;"></img><a href="/">Home</a><a href="/preprints">Preprints</a><a href="/contributors">Contributors</a><a href="/affiliations">Affiliations</a><a href="/coauthorship">Coauthorships</a></nav>',
   sidebar: false,
   footer: `Built by <a href="https://vuorre.com">Matti</a> with <a href="https://observablehq.com/framework/">Observable</a> (<a href="https://github.com/mvuorre/psyarxiv-dashboard">Source</a>). Last updated on ${new Date().toISOString().split('T')[0]}.`, // what to show in the footer (HTML)
   // sidebar: true, // whether to show the sidebar
-  // toc: true, // whether to show the table of contents
+  toc: false, // whether to show the table of contents
   pager: false, // whether to show previous & next links in the footer
   // output: "dist", // path to the output root for build
   // search: true, // activate search

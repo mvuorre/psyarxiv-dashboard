@@ -1,7 +1,5 @@
 ---
-theme: dashboard
 title: Preprints
-toc: false
 ---
 
 # PsyArXiv Preprints
