@@ -124,6 +124,8 @@ Inputs.table(search, {
     contributor_count: "Contributors",
     preprint_count: "Preprints"
   },
+  sort: "preprint_count",
+  reverse: true,
   select: false
 })
 ```
