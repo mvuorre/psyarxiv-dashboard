@@ -1,6 +1,19 @@
 {
   "type": "module",
   "private": true,
+  "name": "psyarxiv-dashboard",
+  "version": "0.1.0",
+  "description": "An [Observable Framework](https://observablehq.com/framework/) dashboard for [PsyArXiv](https://psyarxiv.com/) preprint metadata.",
+  "author": "Matti Vuorre",
+  "license": "MIT",
+  "repository": "https://github.com/mvuorre/psyarxiv-dashboard",
+  "keywords": [
+    "psyarxiv",
+    "preprint",
+    "dashboard",
+    "observable-framework"
+  ],
+  "homepage": "http://vuorre.com/psyarxiv-dashboard/",
   "scripts": {
     "clean": "rimraf src/.observablehq/cache",
     "build": "observable build",
@@ -14,7 +27,7 @@
     "d3-time-format": "^4.1.0"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "rimraf": "^6.1.0"
   },
   "engines": {
     "node": ">=18"

@@ -1,6 +1,6 @@
 # PsyArXiv Dashboard
 
-An [Observable Framework](https://observablehq.com/framework/) dashboard for [PsyArXiv](https://psyarxiv.com/) preprint metadata and submission information.
+An [Observable Framework](https://observablehq.com/framework/) dashboard for [PsyArXiv](https://psyarxiv.com/) preprint metadata.
 
 ## Development
 
