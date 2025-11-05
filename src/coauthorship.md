@@ -143,7 +143,8 @@ function forceGraph(data, {
       .distance(linkDistance)
       .strength(linkStrength))
     .force("charge", d3.forceManyBody().strength(chargeStrength))
-    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("x", d3.forceX(width / 2).strength(0.05))
+    .force("y", d3.forceY(height / 2).strength(0.05))
     .force("collide", d3.forceCollide(nodeRadius * 2));
 
   const svg = d3.create("svg")
@@ -152,7 +153,17 @@ function forceGraph(data, {
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
 
-  const link = svg.append("g")
+  const g = svg.append("g");
+
+  const zoom = d3.zoom()
+    .scaleExtent([0.1, 4])
+    .on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    });
+
+  svg.call(zoom);
+
+  const link = g.append("g")
     .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
     .selectAll("line")
@@ -160,7 +171,7 @@ function forceGraph(data, {
     .join("line")
     .attr("stroke-width", d => Math.sqrt(d.value));
 
-  const node = svg.append("g")
+  const node = g.append("g")
     .attr("stroke", "#fff")
     .attr("stroke-width", 1.5)
     .selectAll("circle")
@@ -170,7 +181,7 @@ function forceGraph(data, {
     .attr("fill", d => d.isCenter ? "#ff6b6b" : "#4dabf7")
     .call(drag(simulation));
 
-  const label = svg.append("g")
+  const label = g.append("g")
     .selectAll("text")
     .data(nodes)
     .join("text")
@@ -208,8 +219,9 @@ function forceGraph(data, {
     }
 
     function dragged(event) {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
+      const padding = 20;
+      event.subject.fx = Math.max(padding, Math.min(width - padding, event.x));
+      event.subject.fy = Math.max(padding, Math.min(height - padding, event.y));
     }
 
     function dragended(event) {
@@ -234,7 +246,12 @@ function forceGraph(data, {
     ${coauthorData && coauthorData.nodes.length > 0 ? html`<p style="font-size: 0.9em; color: #666;">
       ${coauthorData.nodes.length - 1} coauthors, ${coauthorData.links.filter(d => d.source === userId || d.target === userId).length} direct collaborations
     </p>` : ''}
-    ${resize((width) => forceGraph(coauthorData, {width, height: 600}))}
+    ${resize((width) => {
+      // Increase height for large networks
+      const nodeCount = coauthorData?.nodes?.length || 0;
+      const height = nodeCount > 50 ? 800 : 600;
+      return forceGraph(coauthorData, {width, height});
+    })}
   </div>
 </div>
 
