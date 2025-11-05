@@ -240,18 +240,47 @@ function forceGraph(data, {
 }
 ```
 
+```js
+function downloadSVG(svgElement, filename) {
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  const blob = new Blob([svgData], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+```
+
+```js
+const graphContainer = resize((width) => {
+  const nodeCount = coauthorData?.nodes?.length || 0;
+  const height = nodeCount > 50 ? 800 : 600;
+  const svgNode = forceGraph(coauthorData, {width, height});
+
+  const container = html`<div>
+    ${coauthorData && coauthorData.nodes.length > 0 ? html`
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
+        <p style="font-size: 0.9em; color: #666; margin: 0;">
+          ${coauthorData.nodes.length - 1} coauthors, ${coauthorData.links.filter(d => d.source === userId || d.target === userId).length} direct collaborations
+        </p>
+        <button onclick=${() => downloadSVG(svgNode, `coauthorship-network-${userId}.svg`)} style="padding: 0.5em 1em; cursor: pointer;">
+          Save as SVG
+        </button>
+      </div>
+    ` : ''}
+    ${svgNode}
+  </div>`;
+
+  return container;
+});
+```
+
 <div class="grid grid-cols-1">
   <div class="card">
     <h2>Coauthorship Network</h2>
-    ${coauthorData && coauthorData.nodes.length > 0 ? html`<p style="font-size: 0.9em; color: #666;">
-      ${coauthorData.nodes.length - 1} coauthors, ${coauthorData.links.filter(d => d.source === userId || d.target === userId).length} direct collaborations
-    </p>` : ''}
-    ${resize((width) => {
-      // Increase height for large networks
-      const nodeCount = coauthorData?.nodes?.length || 0;
-      const height = nodeCount > 50 ? 800 : 600;
-      return forceGraph(coauthorData, {width, height});
-    })}
+    ${graphContainer}
   </div>
 </div>
 
