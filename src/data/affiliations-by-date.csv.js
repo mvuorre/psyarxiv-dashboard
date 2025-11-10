@@ -6,24 +6,15 @@ async function json(url) {
   return response.json();
 }
 
-// SQL query to get daily counts of new unique institutions
-// This counts institutions by the date of their first contributor's registration
+// SQL query to get daily counts of new affiliation starts
 const sql = `
-  WITH institution_first_dates AS (
-    SELECT
-      json_extract(value, '$.institution') as institution,
-      MIN(DATE(c.date_registered)) as first_date
-    FROM contributors c, json_each(c.employment)
-    WHERE json_extract(value, '$.institution') IS NOT NULL
-      AND json_extract(value, '$.institution') != ''
-    GROUP BY json_extract(value, '$.institution')
-  )
   SELECT
-    first_date as date,
+    DATE(ca.start_date) as date,
     COUNT(*) as count
-  FROM institution_first_dates
-  GROUP BY first_date
-  ORDER BY first_date
+  FROM contributor_affiliations ca
+  WHERE ca.start_date IS NOT NULL
+  GROUP BY DATE(ca.start_date)
+  ORDER BY date
 `;
 
 // Fetch data from Datasette

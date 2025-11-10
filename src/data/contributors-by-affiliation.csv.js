@@ -9,26 +9,27 @@ async function json(url) {
 // Query 1: Count unique contributors per institution (all affiliations ever)
 const contributorSql = `
   SELECT
-    json_extract(value, '$.institution') as institution,
-    COUNT(DISTINCT c.osf_user_id) as contributor_count
-  FROM contributors c, json_each(c.employment)
-  WHERE json_extract(value, '$.institution') IS NOT NULL
-  GROUP BY institution
+    i.name as institution,
+    COUNT(DISTINCT ca.contributor_id) as contributor_count
+  FROM contributor_affiliations ca
+  JOIN institutions i ON ca.institution_id = i.id
+  WHERE i.name IS NOT NULL
+  GROUP BY i.name
 `;
 
 // Query 2: Count preprints per institution (current affiliations only, latest versions only)
 const preprintSql = `
   SELECT
-    json_extract(value, '$.institution') as institution,
+    i.name as institution,
     COUNT(DISTINCT pc.preprint_id) as preprint_count
   FROM preprint_contributors pc
-  JOIN contributors c ON pc.osf_user_id = c.osf_user_id,
-       json_each(c.employment)
+  JOIN contributor_affiliations ca ON pc.osf_user_id = ca.contributor_id
+  JOIN institutions i ON ca.institution_id = i.id
   WHERE pc.bibliographic = 1
     AND pc.is_latest_version = 1
-    AND json_extract(value, '$.ongoing') = 1
-    AND json_extract(value, '$.institution') IS NOT NULL
-  GROUP BY institution
+    AND ca.end_date IS NULL
+    AND i.name IS NOT NULL
+  GROUP BY i.name
 `;
 
 // Fetch both queries sequentially to avoid Datasette timeout issues
