@@ -190,7 +190,7 @@ treemapLayout(rootHierarchy);
 const level1Subjects = subjects.filter(d => d.level === 1).sort((a, b) => b.count - a.count);
 const selectedSubject = view(Inputs.select(level1Subjects.map(d => d.text), {
   label: "Select discipline",
-  value: level1Subjects[0].text
+  value: level1Subjects[1].text
 }));
 ```
 

@@ -30,8 +30,8 @@ const affiliationsData = affiliationsByDate.map(d => ({...d, date: new Date(d.da
 
 ```js
 const affiliationsGranularity = view(Inputs.radio(
-  ["daily", "weekly", "monthly", "yearly"],
-  {label: "Affiliations granularity", value: "weekly"}
+  ["monthly", "yearly"],
+  {label: "Affiliations granularity", value: "monthly"}
 ));
 ```
 
