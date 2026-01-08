@@ -2,7 +2,15 @@ import {csvFormat} from "d3-dsv";
 
 async function json(url) {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`fetch failed: ${response.status}`);
+  if (!response.ok) {
+    let body = "";
+    try {
+      body = await response.text();
+    } catch {
+      body = "";
+    }
+    throw new Error(`fetch failed: ${response.status}${body ? `\n${body}` : ""}`);
+  }
   return response.json();
 }
 
@@ -14,6 +22,7 @@ const sql = `
   WHERE full_name IS NOT NULL
     AND n_preprints > 0
   ORDER BY n_preprints DESC
+  LIMIT 5000
 `;
 
 const url = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
