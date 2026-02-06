@@ -13,12 +13,17 @@ const affiliations = FileAttachment("data/contributors-by-affiliation.csv").csv(
 ```
 
 ```js
-const affiliationsByDate = FileAttachment("data/affiliations-by-date.csv").csv({typed: true});
+const affiliationsByDate = FileAttachment("data/affiliations-first-appearance-by-date.csv").csv({typed: true});
+```
+
+```js
+const affiliationsOnPreprintsByDate = FileAttachment("data/affiliations-on-preprints-by-date.csv").csv({typed: true});
 ```
 
 ```js
 // Parse dates and calculate totals
 const affiliationsData = affiliationsByDate.map(d => ({...d, date: new Date(d.date)}));
+const affiliationsOnPreprintsData = affiliationsOnPreprintsByDate.map(d => ({...d, date: new Date(d.date)}));
 ```
 
 <div class="grid grid-cols-1">
@@ -30,8 +35,8 @@ const affiliationsData = affiliationsByDate.map(d => ({...d, date: new Date(d.da
 
 ```js
 const affiliationsGranularity = view(Inputs.radio(
-  ["monthly", "yearly"],
-  {label: "Affiliations granularity", value: "monthly"}
+  ["daily", "weekly", "monthly", "yearly"],
+  {label: "Granularity", value: "weekly"}
 ));
 ```
 
@@ -45,12 +50,21 @@ const affiliationsCumulative = view(Inputs.radio(
 ```js
 const aggregatedAffiliations = aggregateData(affiliationsData, affiliationsGranularity);
 const displayAffiliations = affiliationsCumulative === "cumulative" ? toCumulative(aggregatedAffiliations) : aggregatedAffiliations;
+
+const aggregatedAffiliationsOnPreprints = aggregateData(affiliationsOnPreprintsData, affiliationsGranularity);
 ```
 
 <div class="grid grid-cols-1">
   <div class="card">
     <h2>${affiliationsCumulative === "cumulative" ? "Cumulative" : "New"} ${affiliationsGranularity} affiliations</h2>
     ${resize((width) => timeSeriesChart(displayAffiliations, {width, granularity: affiliationsGranularity}))}
+  </div>
+</div>
+
+<div class="grid grid-cols-1">
+  <div class="card">
+    <h2>Total ${affiliationsGranularity} affiliations</h2>
+    ${resize((width) => timeSeriesChart(aggregatedAffiliationsOnPreprints, {width, granularity: affiliationsGranularity}))}
   </div>
 </div>
 
@@ -147,7 +161,19 @@ Preprint counts:
 - Only bibliographic authors are counted
 - Only current/ongoing affiliations are credited
 
-Limitations: Affiliations are extracted as-is from OSF users' self-reported metadata. This means:
+New affiliations:
+- First appearance of an institution on any preprint in the selected time bucket
+- Only latest versions of preprints are counted
+- Only bibliographic authors are counted
+- Only current/ongoing affiliations are credited
+
+Total affiliations:
+- Distinct institutions appearing on preprints in the selected time bucket
+- Only latest versions of preprints are counted
+- Only bibliographic authors are counted
+- Only current/ongoing affiliations are credited
+
+Affiliations are extracted as-is from OSF users' self-reported metadata. This means:
 - Institution names may have spelling variations or inconsistencies
 - Employment history completeness and accuracy varies by user
 - Users may not keep their "ongoing" status updated

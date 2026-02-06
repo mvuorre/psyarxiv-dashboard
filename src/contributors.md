@@ -9,7 +9,11 @@ import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeser
 ```
 
 ```js
-const contributors = FileAttachment("data/contributors-by-date.csv").csv({typed: true});
+const contributors = FileAttachment("data/contributors-first-appearance-by-date.csv").csv({typed: true});
+```
+
+```js
+const contributorsOnPreprintsByDate = FileAttachment("data/contributors-on-preprints-by-date.csv").csv({typed: true});
 ```
 
 ```js
@@ -19,6 +23,7 @@ const topContributors = FileAttachment("data/top-contributors.csv").csv({typed: 
 ```js
 // Parse dates and calculate totals
 const contributorData = contributors.map(d => ({...d, date: new Date(d.date)}));
+const contributorsOnPreprintsData = contributorsOnPreprintsByDate.map(d => ({...d, date: new Date(d.date)}));
 const totalContributors = d3.sum(contributorData, d => d.count);
 ```
 
@@ -34,7 +39,7 @@ const totalContributors = d3.sum(contributorData, d => d.count);
 ```js
 const contributorsGranularity = view(Inputs.radio(
   ["daily", "weekly", "monthly", "yearly"],
-  {label: "Contributors granularity", value: "weekly"}
+  {label: "Granularity", value: "weekly"}
 ));
 ```
 
@@ -48,6 +53,8 @@ const contributorsCumulative = view(Inputs.radio(
 ```js
 const aggregatedContributors = aggregateData(contributorData, contributorsGranularity);
 const displayContributors = contributorsCumulative === "cumulative" ? toCumulative(aggregatedContributors) : aggregatedContributors;
+
+const aggregatedContributorsOnPreprints = aggregateData(contributorsOnPreprintsData, contributorsGranularity);
 ```
 
 <!-- Time series -->
@@ -56,6 +63,13 @@ const displayContributors = contributorsCumulative === "cumulative" ? toCumulati
   <div class="card">
     <h2>${contributorsCumulative === "cumulative" ? "Cumulative" : "New"} ${contributorsGranularity} contributors</h2>
     ${resize((width) => timeSeriesChart(displayContributors, {width, granularity: contributorsGranularity}))}
+  </div>
+</div>
+
+<div class="grid grid-cols-1">
+  <div class="card">
+    <h2>Total ${contributorsGranularity} contributors</h2>
+    ${resize((width) => timeSeriesChart(aggregatedContributorsOnPreprints, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
 
@@ -121,3 +135,13 @@ Inputs.table(search, {
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
 Only bibliographic authors on the latest version of each preprint are counted. 5,000 authors with most preprints posted are shown in the table / graph. Rankings of individual contributors should be interpreted with caution. Publication counts are influenced by many factors including field norms, career stage, collaboration patterns, and data quality. As with any metric, there is a risk that making these numbers visible could create perverse incentives (Goodhart's law). This data is provided for transparency and aggregate analysis, not for individual comparison or evaluation.
+
+New contributors (time series):
+- First appearance of a contributor on any preprint in the selected time bucket
+- Only latest versions of preprints are counted
+- Only bibliographic authors are counted
+
+Total contributors:
+- Distinct contributors appearing on preprints in the selected time bucket
+- Only latest versions of preprints are counted
+- Only bibliographic authors are counted

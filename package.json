@@ -2,7 +2,7 @@
   "type": "module",
   "private": true,
   "name": "psyarxiv-dashboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An [Observable Framework](https://observablehq.com/framework/) dashboard for [PsyArXiv](https://psyarxiv.com/) preprint metadata.",
   "author": "Matti Vuorre",
   "license": "MIT",
