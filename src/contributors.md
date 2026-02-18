@@ -9,6 +9,18 @@ import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeser
 ```
 
 ```js
+import {
+  datasetteSqlPageUrl,
+  contributorsFirstAppearanceByDateSql,
+  contributorsFirstAppearanceByDateUrl,
+  contributorsOnPreprintsByDateSql,
+  contributorsOnPreprintsByDateUrl,
+  topContributorsSql,
+  topContributorsUrl
+} from "./data/queries.js";
+```
+
+```js
 const contributors = FileAttachment("data/contributors-first-appearance-by-date.csv").csv({typed: true});
 ```
 
@@ -133,6 +145,32 @@ Inputs.table(search, {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      New contributors by first appearance:
+      <a href="${contributorsFirstAppearanceByDateUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(contributorsFirstAppearanceByDateSql)}">SQL page</a>
+    </li>
+    <li>
+      Distinct contributors on preprints by date:
+      <a href="${contributorsOnPreprintsByDateUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(contributorsOnPreprintsByDateSql)}">SQL page</a>
+    </li>
+    <li>
+      Top contributors by preprint count:
+      <a href="${topContributorsUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(topContributorsSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
 
 Only bibliographic authors on the latest version of each preprint are counted. 5,000 authors with most preprints posted are shown in the table / graph. Rankings of individual contributors should be interpreted with caution. Publication counts are influenced by many factors including field norms, career stage, collaboration patterns, and data quality. As with any metric, there is a risk that making these numbers visible could create perverse incentives (Goodhart's law). This data is provided for transparency and aggregate analysis, not for individual comparison or evaluation.
 

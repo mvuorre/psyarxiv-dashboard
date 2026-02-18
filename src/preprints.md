@@ -9,6 +9,10 @@ import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeser
 ```
 
 ```js
+import {datasetteSqlPageUrl, preprintsByDateSql, preprintsByDateUrl} from "./data/queries.js";
+```
+
+```js
 const preprints = FileAttachment("data/preprints-by-date.csv").csv({typed: true});
 ```
 
@@ -59,4 +63,20 @@ const displayPreprints = preprintsCumulative === "cumulative" ? toCumulative(agg
 
 ## Methodology and Data Notes
 
-Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com). Only latest version of preprints included.
+Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      Preprints by date:
+      <a href="${preprintsByDateUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(preprintsByDateSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
+
+Only latest version of preprints included.

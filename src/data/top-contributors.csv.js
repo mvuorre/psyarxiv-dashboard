@@ -1,4 +1,5 @@
 import {csvFormat} from "d3-dsv";
+import {topContributorsUrl} from "./queries.js";
 
 async function json(url) {
   const response = await fetch(url);
@@ -14,19 +15,7 @@ async function json(url) {
   return response.json();
 }
 
-const sql = `
-  SELECT
-    full_name as contributor_name,
-    n_preprints as preprint_count
-  FROM contributors_with_counts
-  WHERE full_name IS NOT NULL
-    AND n_preprints > 0
-  ORDER BY n_preprints DESC
-  LIMIT 5000
-`;
-
-const url = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
-const response = await json(url);
+const response = await json(topContributorsUrl);
 
 const data = response.rows.map(row => ({
   contributor_name: row[0],

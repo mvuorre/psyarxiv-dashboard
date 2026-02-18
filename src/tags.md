@@ -5,6 +5,16 @@ title: PsyArXiv Tags
 # PsyArXiv Tags
 
 ```js
+import {
+  datasetteQueryUrl,
+  datasetteSqlPageFromJsonUrl,
+  datasetteSqlPageUrl,
+  topTagsSql,
+  topTagsUrl
+} from "./data/queries.js";
+```
+
+```js
 const tags = FileAttachment("data/top-tags.csv").csv({typed: true});
 ```
 
@@ -109,15 +119,18 @@ const networkButtonClicks = view(Inputs.button("Show Network", {reduce: (i) => i
 const tagCooccurrenceData = await (async () => {
   if (networkButtonClicks === 0) return null;
 
-  const baseUrl = "https://psyarxivdb.vuorre.com/preprints.json?sql=";
-
   // Get the tag_id for the selected tag
   const tagIdQuery = `SELECT id FROM tags WHERE tag_text = '${selectedTag.replace(/'/g, "''")}'`;
-  const tagIdResponse = await fetch(baseUrl + encodeURIComponent(tagIdQuery));
+  const tagIdUrl = datasetteQueryUrl(tagIdQuery);
+  const tagIdResponse = await fetch(tagIdUrl);
   const tagIdData = await tagIdResponse.json();
 
   if (!tagIdData.rows || tagIdData.rows.length === 0) {
-    return { nodes: [], links: [] };
+    return {
+      nodes: [],
+      links: [],
+      queryUrls: {tagIdUrl}
+    };
   }
 
   const selectedTagId = tagIdData.rows[0][0];
@@ -140,11 +153,16 @@ const tagCooccurrenceData = await (async () => {
     LIMIT ${networkSize}
   `;
 
-  const response = await fetch(baseUrl + encodeURIComponent(query));
+  const cooccurrenceUrl = datasetteQueryUrl(query);
+  const response = await fetch(cooccurrenceUrl);
   const data = await response.json();
 
   if (!data.rows || data.rows.length === 0) {
-    return { nodes: [], links: [] };
+    return {
+      nodes: [],
+      links: [],
+      queryUrls: {tagIdUrl, cooccurrenceUrl}
+    };
   }
 
   // Build nodes
@@ -154,6 +172,7 @@ const tagCooccurrenceData = await (async () => {
 
   const links = [];
   const cotagIds = [];
+  const queryUrls = {tagIdUrl, cooccurrenceUrl};
 
   data.rows.forEach(row => {
     const [cotagId, cotagName, count] = row;
@@ -192,7 +211,9 @@ const tagCooccurrenceData = await (async () => {
       HAVING cooccurrence_count >= 3
     `;
 
-    const response2 = await fetch(baseUrl + encodeURIComponent(query2));
+    const coTagConnectionsUrl = datasetteQueryUrl(query2);
+    queryUrls.coTagConnectionsUrl = coTagConnectionsUrl;
+    const response2 = await fetch(coTagConnectionsUrl);
     const data2 = await response2.json();
 
     data2.rows.forEach(row => {
@@ -205,7 +226,7 @@ const tagCooccurrenceData = await (async () => {
     });
   }
 
-  return { nodes, links };
+  return { nodes, links, queryUrls };
 })();
 ```
 
@@ -389,6 +410,49 @@ const graphContainer = resize((width) => {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+const currentTagIdQuery = `SELECT id FROM tags WHERE tag_text = '${selectedTag.replace(/'/g, "''")}'`;
+const currentTagIdUrl = datasetteQueryUrl(currentTagIdQuery);
+const currentTagCooccurrenceUrl = tagCooccurrenceData?.queryUrls?.cooccurrenceUrl;
+const currentCoTagConnectionsUrl = tagCooccurrenceData?.queryUrls?.coTagConnectionsUrl;
+```
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      Top tags (&gt;=10 uses):
+      <a href="${topTagsUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(topTagsSql)}">SQL page</a>
+    </li>
+    <li>
+      Tag ID lookup (current selection):
+      <a href="${currentTagIdUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(currentTagIdQuery)}">SQL page</a>
+    </li>
+    ${currentTagCooccurrenceUrl
+      ? html`<li>
+          Co-occurring tags (current selection):
+          <a href="${currentTagCooccurrenceUrl}">JSON</a>
+          |
+          <a href="${datasetteSqlPageFromJsonUrl(currentTagCooccurrenceUrl)}">SQL page</a>
+        </li>`
+      : html`<li>Co-occurring tags URL is generated after clicking "Show Network".</li>`}
+    ${currentCoTagConnectionsUrl
+      ? html`<li>
+          Co-tag connections (current selection):
+          <a href="${currentCoTagConnectionsUrl}">JSON</a>
+          |
+          <a href="${datasetteSqlPageFromJsonUrl(currentCoTagConnectionsUrl)}">SQL page</a>
+        </li>`
+      : html`<li>Co-tag connections URL is generated after clicking "Show Network".</li>`}
+  </ul>
+</div>`
+```
 
 Only tags with 10 or more uses are shown (3,425 tags, filtering out 94% of one-off tags).
 

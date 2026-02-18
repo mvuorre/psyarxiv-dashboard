@@ -5,6 +5,16 @@ title: Open Science Practices
 # Open Science Practices
 
 ```js
+import {
+  datasetteSqlPageUrl,
+  openScienceDataLinksByYearSql,
+  openScienceDataLinksByYearUrl,
+  openSciencePreregLinksByYearSql,
+  openSciencePreregLinksByYearUrl
+} from "./data/queries.js";
+```
+
+```js
 const openScienceData = FileAttachment("data/open-science-by-year.csv").csv({typed: true});
 ```
 
@@ -175,6 +185,26 @@ Inputs.table(search, {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      Data links by year:
+      <a href="${openScienceDataLinksByYearUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(openScienceDataLinksByYearSql)}">SQL page</a>
+    </li>
+    <li>
+      Preregistration links by year:
+      <a href="${openSciencePreregLinksByYearUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(openSciencePreregLinksByYearSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
 
 Only latest versions of preprints are counted. Response categories:
 

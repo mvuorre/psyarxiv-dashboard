@@ -9,6 +9,20 @@ import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeser
 ```
 
 ```js
+import {
+  datasetteSqlPageUrl,
+  contributorsByAffiliationContributorSql,
+  contributorsByAffiliationContributorUrl,
+  contributorsByAffiliationPreprintSql,
+  contributorsByAffiliationPreprintUrl,
+  affiliationsFirstAppearanceByDateSql,
+  affiliationsFirstAppearanceByDateUrl,
+  affiliationsOnPreprintsByDateSql,
+  affiliationsOnPreprintsByDateUrl
+} from "./data/queries.js";
+```
+
+```js
 const affiliations = FileAttachment("data/contributors-by-affiliation.csv").csv({typed: true});
 ```
 
@@ -153,6 +167,38 @@ Inputs.table(search, {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      Contributors per institution (all known affiliations):
+      <a href="${contributorsByAffiliationContributorUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(contributorsByAffiliationContributorSql)}">SQL page</a>
+    </li>
+    <li>
+      Preprints per institution (current affiliations):
+      <a href="${contributorsByAffiliationPreprintUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(contributorsByAffiliationPreprintSql)}">SQL page</a>
+    </li>
+    <li>
+      New affiliations by first appearance on preprints:
+      <a href="${affiliationsFirstAppearanceByDateUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(affiliationsFirstAppearanceByDateSql)}">SQL page</a>
+    </li>
+    <li>
+      Distinct affiliations on preprints by date:
+      <a href="${affiliationsOnPreprintsByDateUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(affiliationsOnPreprintsByDateSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
 
 Contributor counts: Each unique contributor is counted once per institution that appears anywhere in their employment history (past or present positions).
 

@@ -9,6 +9,10 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
+import {datasetteQueryUrl, datasetteSqlPageFromJsonUrl, datasetteSqlPageUrl} from "./data/queries.js";
+```
+
+```js
 const userId = view(Inputs.text({
   label: "OSF User ID",
   value: "tdyix",
@@ -24,8 +28,7 @@ const buttonClicks = view(Inputs.button("Show Network", {reduce: (i) => i + 1}))
 // Fetch coauthorship data when button is clicked
 const coauthorData = await (async () => {
   if (buttonClicks === 0) return null;
-
-  const baseUrl = "https://psyarxivdb.vuorre.com/preprints.json?sql=";
+  const escapedUserId = userId.replace(/'/g, "''");
 
   // Query 1: Direct coauthors with names
   const query1 = `
@@ -33,23 +36,29 @@ const coauthorData = await (async () => {
     FROM preprint_contributors pc1
     JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id != pc2.osf_user_id
     JOIN contributors c ON pc2.osf_user_id = c.osf_user_id
-    WHERE pc1.osf_user_id = '${userId}'
+    WHERE pc1.osf_user_id = '${escapedUserId}'
       AND pc1.bibliographic = 1 AND pc2.bibliographic = 1
       AND pc1.is_latest_version = 1 AND pc2.is_latest_version = 1
       AND c.full_name IS NOT NULL
     GROUP BY c.osf_user_id, c.full_name
   `;
 
-  const response1 = await fetch(baseUrl + encodeURIComponent(query1));
+  const query1Url = datasetteQueryUrl(query1);
+  const response1 = await fetch(query1Url);
   const data1 = await response1.json();
 
   if (!data1.rows || data1.rows.length === 0) {
-    return { nodes: [], links: [] };
+    return {
+      nodes: [],
+      links: [],
+      queryUrls: {query1Url}
+    };
   }
 
   // Get user's own name
-  const userQuery = `SELECT full_name FROM contributors_with_counts WHERE osf_user_id = '${userId}'`;
-  const userResponse = await fetch(baseUrl + encodeURIComponent(userQuery));
+  const userQuery = `SELECT full_name FROM contributors_with_counts WHERE osf_user_id = '${escapedUserId}'`;
+  const userQueryUrl = datasetteQueryUrl(userQuery);
+  const userResponse = await fetch(userQueryUrl);
   const userData = await userResponse.json();
   const userName = userData.rows[0]?.[0] || userId;
 
@@ -60,6 +69,7 @@ const coauthorData = await (async () => {
 
   const links = [];
   const coauthorIds = [];
+  const queryUrls = {query1Url, userQueryUrl};
 
   data1.rows.forEach(row => {
     const [coauthorId, coauthorName, count] = row;
@@ -92,7 +102,9 @@ const coauthorData = await (async () => {
       GROUP BY c1.osf_user_id, c1.full_name, c2.osf_user_id, c2.full_name
     `;
 
-    const response2 = await fetch(baseUrl + encodeURIComponent(query2));
+    const query2Url = datasetteQueryUrl(query2);
+    queryUrls.query2Url = query2Url;
+    const response2 = await fetch(query2Url);
     const data2 = await response2.json();
 
     data2.rows.forEach(row => {
@@ -105,7 +117,7 @@ const coauthorData = await (async () => {
     });
   }
 
-  return { nodes, links };
+  return { nodes, links, queryUrls };
 })();
 ```
 
@@ -289,5 +301,54 @@ const graphContainer = resize((width) => {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+const escapedUserId = userId.replace(/'/g, "''");
+const directCoauthorsQuery = `
+  SELECT c.osf_user_id, c.full_name, COUNT(DISTINCT pc1.preprint_id) as count
+  FROM preprint_contributors pc1
+  JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id != pc2.osf_user_id
+  JOIN contributors c ON pc2.osf_user_id = c.osf_user_id
+  WHERE pc1.osf_user_id = '${escapedUserId}'
+    AND pc1.bibliographic = 1 AND pc2.bibliographic = 1
+    AND pc1.is_latest_version = 1 AND pc2.is_latest_version = 1
+    AND c.full_name IS NOT NULL
+  GROUP BY c.osf_user_id, c.full_name
+`;
+const directCoauthorsUrl = coauthorData?.queryUrls?.query1Url || datasetteQueryUrl(directCoauthorsQuery);
+
+const contributorNameLookupQuery = `SELECT full_name FROM contributors_with_counts WHERE osf_user_id = '${escapedUserId}'`;
+const contributorNameLookupUrl = coauthorData?.queryUrls?.userQueryUrl || datasetteQueryUrl(contributorNameLookupQuery);
+
+const coauthorConnectionsUrl = coauthorData?.queryUrls?.query2Url;
+```
+
+```js
+html`<div>
+  <p>Data source queries (current input):</p>
+  <ul>
+    <li>
+      Direct coauthors with collaboration counts:
+      <a href="${directCoauthorsUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(directCoauthorsQuery)}">SQL page</a>
+    </li>
+    <li>
+      Selected contributor display name lookup:
+      <a href="${contributorNameLookupUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(contributorNameLookupQuery)}">SQL page</a>
+    </li>
+    ${coauthorConnectionsUrl
+      ? html`<li>
+          Connections among returned coauthors:
+          <a href="${coauthorConnectionsUrl}">JSON</a>
+          |
+          <a href="${datasetteSqlPageFromJsonUrl(coauthorConnectionsUrl)}">SQL page</a>
+        </li>`
+      : html`<li>Connections-among-coauthors URL is generated after clicking "Show Network" and returning 2+ coauthors.</li>`}
+  </ul>
+</div>`
+```
 
 Only bibliographic authors on the latest version of each preprint are included. Link thickness represents the number of shared preprints between two authors.

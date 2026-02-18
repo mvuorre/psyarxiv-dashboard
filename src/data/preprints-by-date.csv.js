@@ -1,4 +1,5 @@
 import {csvFormat} from "d3-dsv";
+import {preprintsByDateUrl} from "./queries.js";
 
 async function json(url) {
   const response = await fetch(url);
@@ -6,20 +7,8 @@ async function json(url) {
   return response.json();
 }
 
-// SQL query to get daily counts of preprints
-const sql = `
-  SELECT
-    DATE(date_created) as date,
-    COUNT(*) as count
-  FROM preprints
-  WHERE is_latest_version = 1
-  GROUP BY date
-  ORDER BY date
-`;
-
 // Fetch data from Datasette
-const url = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
-const response = await json(url);
+const response = await json(preprintsByDateUrl);
 
 // Transform the data
 const data = response.rows.map(row => ({

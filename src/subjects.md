@@ -5,6 +5,10 @@ title: PsyArXiv Subjects
 # PsyArXiv Subjects
 
 ```js
+import {datasetteSqlPageUrl, subjectsSql, subjectsUrl} from "./data/queries.js";
+```
+
+```js
 const subjects = FileAttachment("data/subjects.csv").csv({typed: true});
 ```
 
@@ -282,6 +286,20 @@ const selectedSubject = view(Inputs.select(level1Subjects.map(d => d.text), {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      Subject hierarchy and preprint counts:
+      <a href="${subjectsUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(subjectsSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
 
 - Subjects form a 3-level hierarchy:
   - Level 1: Top-level disciplines (e.g., Social and Behavioral Sciences, Neuroscience)

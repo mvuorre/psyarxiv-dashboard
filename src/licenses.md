@@ -5,6 +5,10 @@ title: PsyArXiv Licenses
 # PsyArXiv Licenses
 
 ```js
+import {datasetteSqlPageUrl, licensesSql, licensesUrl} from "./data/queries.js";
+```
+
+```js
 const licenses = FileAttachment("data/licenses.csv").csv({typed: true});
 ```
 
@@ -85,6 +89,20 @@ Inputs.table(enrichedLicenses, {
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
+
+```js
+html`<div>
+  <p>Data source queries:</p>
+  <ul>
+    <li>
+      License counts:
+      <a href="${licensesUrl}">JSON</a>
+      |
+      <a href="${datasetteSqlPageUrl(licensesSql)}">SQL page</a>
+    </li>
+  </ul>
+</div>`
+```
 
 - License information is recorded for the latest version of each preprint
 - "Not specified" indicates preprints without license information in the database

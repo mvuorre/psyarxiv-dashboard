@@ -1,4 +1,5 @@
 import {csvFormat} from "d3-dsv";
+import {topTagsUrl} from "./queries.js";
 
 async function json(url) {
   const response = await fetch(url);
@@ -6,17 +7,7 @@ async function json(url) {
   return response.json();
 }
 
-const sql = `
-  SELECT
-    tag_text,
-    use_count
-  FROM tags
-  WHERE use_count >= 10
-  ORDER BY use_count DESC
-`;
-
-const url = `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
-const response = await json(url);
+const response = await json(topTagsUrl);
 
 const data = response.rows.map(row => ({
   tag_text: row[0],
