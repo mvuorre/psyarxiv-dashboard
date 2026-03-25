@@ -1,5 +1,5 @@
 ---
-title: Contributor Affiliations
+title: Affiliations
 ---
 
 # PsyArXiv Contributor Affiliations

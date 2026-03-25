@@ -268,7 +268,7 @@ function downloadSVG(svgElement, filename) {
 ```js
 const graphContainer = resize((width) => {
   const nodeCount = coauthorData?.nodes?.length || 0;
-  const height = nodeCount > 50 ? 800 : 600;
+  const height = nodeCount > 50 ? 800 : 700;
   const svgNode = forceGraph(coauthorData, {width, height});
 
   const container = html`<div>
