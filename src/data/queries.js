@@ -1,8 +1,15 @@
-export const datasetteQueryUrl = (sql) =>
-  `https://psyarxivdb.vuorre.com/preprints.json?sql=${encodeURIComponent(sql)}`;
+export const datasetteBaseUrl =
+  globalThis.process?.env?.DATASETTE_BASE_URL ?? "https://psyarxivdb.vuorre.com";
 
-export const datasetteSqlPageUrl = (sql) =>
-  `https://psyarxivdb.vuorre.com/preprints?sql=${encodeURIComponent(sql)}`;
+const datasetteUrl = (pathname, sql) => {
+  const url = new URL(pathname, datasetteBaseUrl);
+  url.searchParams.set("sql", sql);
+  return url.toString();
+};
+
+export const datasetteQueryUrl = (sql) => datasetteUrl("/preprints.json", sql);
+
+export const datasetteSqlPageUrl = (sql) => datasetteUrl("/preprints", sql);
 
 export const datasetteSqlPageFromJsonUrl = (jsonUrl) => {
   const url = new URL(jsonUrl);
