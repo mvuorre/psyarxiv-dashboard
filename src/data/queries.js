@@ -149,14 +149,9 @@ export const contributorsByDateUrl = datasetteQueryUrl(contributorsByDateSql);
 
 export const contributorsOnPreprintsByDateSql = `
   SELECT
-    DATE(p.date_created) as date,
-    COUNT(DISTINCT pc.osf_user_id) as count
-  FROM preprints p
-  JOIN preprint_contributors pc ON pc.preprint_id = p.id
-  WHERE p.is_latest_version = 1
-    AND pc.bibliographic = 1
-    AND pc.is_latest_version = 1
-  GROUP BY date
+    date,
+    count
+  FROM dashboard_contributors_on_preprints_by_date
   ORDER BY date
 `;
 
@@ -164,12 +159,10 @@ export const contributorsOnPreprintsByDateUrl = datasetteQueryUrl(contributorsOn
 
 export const topContributorsSql = `
   SELECT
-    full_name as contributor_name,
-    n_preprints as preprint_count
-  FROM contributors_with_counts
-  WHERE full_name IS NOT NULL
-    AND n_preprints > 0
-  ORDER BY n_preprints DESC
+    contributor_name,
+    preprint_count
+  FROM dashboard_top_contributors
+  ORDER BY preprint_count DESC
   LIMIT 5000
 `;
 
@@ -215,18 +208,9 @@ export const affiliationsFirstAppearanceByDateUrl = datasetteQueryUrl(affiliatio
 
 export const affiliationsOnPreprintsByDateSql = `
   SELECT
-    DATE(p.date_created) as date,
-    COUNT(DISTINCT i.id) as count
-  FROM preprints p
-  JOIN preprint_contributors pc ON pc.preprint_id = p.id
-  JOIN contributor_affiliations ca ON pc.osf_user_id = ca.contributor_id
-  JOIN institutions i ON ca.institution_id = i.id
-  WHERE p.is_latest_version = 1
-    AND pc.bibliographic = 1
-    AND pc.is_latest_version = 1
-    AND ca.end_date IS NULL
-    AND i.name IS NOT NULL
-  GROUP BY date
+    date,
+    count
+  FROM dashboard_affiliations_on_preprints_by_date
   ORDER BY date
 `;
 
