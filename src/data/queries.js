@@ -80,36 +80,13 @@ export const openSciencePreregLinksByYearSql = `
 export const openSciencePreregLinksByYearUrl = datasetteQueryUrl(openSciencePreregLinksByYearSql);
 
 export const subjectsSql = `
-  WITH RECURSIVE hierarchy AS (
-    -- Base case: root subjects (no parent)
-    SELECT
-      id,
-      text,
-      parent_id,
-      1 as level
-    FROM subjects
-    WHERE parent_id IS NULL OR parent_id = ''
-
-    UNION ALL
-
-    -- Recursive case: children
-    SELECT
-      s.id,
-      s.text,
-      s.parent_id,
-      h.level + 1
-    FROM subjects s
-    INNER JOIN hierarchy h ON s.parent_id = h.id
-  )
   SELECT
-    h.id,
-    h.text,
-    h.parent_id,
-    h.level,
-    COUNT(DISTINCT ps.preprint_id) as count
-  FROM hierarchy h
-  LEFT JOIN preprint_subjects ps ON h.id = ps.subject_id AND ps.is_latest_version = 1
-  GROUP BY h.id, h.text, h.parent_id, h.level
+    id,
+    text,
+    parent_id,
+    level,
+    count
+  FROM dashboard_subject_counts
   ORDER BY count DESC
 `;
 
