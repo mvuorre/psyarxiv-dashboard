@@ -24,6 +24,20 @@ To point it at a local Datasette on `http://127.0.0.1:8001`, set:
 DATASETTE_BASE_URL=http://127.0.0.1:8001 npm run dev
 ```
 
+For timeout and query-smoke testing, use the probe suite instead of clicking through pages manually:
+
+```
+npm run probe-queries
+```
+
+`npm run probe-queries` defaults to `http://127.0.0.1:8001` and prints `ok` / `warn` / `fail` for every dashboard query, including fixed fixtures for the tag and coauthorship network queries.
+
+To target the live VPS Datasette instead:
+
+```
+DATASETTE_BASE_URL=https://psyarxivdb.vuorre.com npm run probe-queries
+```
+
 If you switch between Datasette endpoints, clear the Observable cache first:
 
 ```

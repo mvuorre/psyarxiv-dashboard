@@ -12,6 +12,14 @@ import {
   topTagsSql,
   topTagsUrl
 } from "./data/queries.js";
+import {
+  buildCoTagConnectionsSql,
+  buildTagCooccurrenceSql,
+  buildTagIdLookupSql,
+  defaultTagName,
+  defaultTagNetworkSize,
+  maxTagNetworkSize
+} from "./data/network-queries.js";
 ```
 
 ```js
@@ -93,18 +101,18 @@ const tagsSorted = [...tags].sort((a, b) => a.tag_text.localeCompare(b.tag_text)
 ```js
 const tagInput = view(Inputs.select(tagsSorted.map(d => d.tag_text), {
   label: "Select tag (type to search)",
-  value: "social cognition",
+  value: defaultTagName,
   width: 300
 }));
 ```
 
 ```js
-const selectedTag = tagInput || "social cognition";
+const selectedTag = tagInput || defaultTagName;
 ```
 
 ```js
-const networkSize = view(Inputs.range([10, 100], {
-  value: 30,
+const networkSize = view(Inputs.range([10, maxTagNetworkSize], {
+  value: defaultTagNetworkSize,
   step: 10,
   label: "Number of co-occurring tags to show"
 }));
@@ -120,7 +128,7 @@ const tagCooccurrenceData = await (async () => {
   if (networkButtonClicks === 0) return null;
 
   // Get the tag_id for the selected tag
-  const tagIdQuery = `SELECT id FROM tags WHERE tag_text = '${selectedTag.replace(/'/g, "''")}'`;
+  const tagIdQuery = buildTagIdLookupSql(selectedTag);
   const tagIdUrl = datasetteQueryUrl(tagIdQuery);
   const tagIdResponse = await fetch(tagIdUrl);
   const tagIdData = await tagIdResponse.json();
@@ -136,22 +144,7 @@ const tagCooccurrenceData = await (async () => {
   const selectedTagId = tagIdData.rows[0][0];
 
   // Query: Get co-occurring tags (tags that appear on same preprints)
-  const query = `
-    SELECT
-      t.id,
-      t.tag_text,
-      COUNT(DISTINCT pt1.preprint_id) as cooccurrence_count
-    FROM preprint_tags pt1
-    JOIN preprint_tags pt2 ON pt1.preprint_id = pt2.preprint_id AND pt1.tag_id != pt2.tag_id
-    JOIN tags t ON pt2.tag_id = t.id
-    WHERE pt1.tag_id = ${selectedTagId}
-      AND pt1.is_latest_version = 1
-      AND pt2.is_latest_version = 1
-      AND t.use_count >= 10
-    GROUP BY t.id, t.tag_text
-    ORDER BY cooccurrence_count DESC
-    LIMIT ${networkSize}
-  `;
+  const query = buildTagCooccurrenceSql(selectedTagId, networkSize);
 
   const cooccurrenceUrl = datasetteQueryUrl(query);
   const response = await fetch(cooccurrenceUrl);
@@ -191,25 +184,7 @@ const tagCooccurrenceData = await (async () => {
 
   // Query 2: Get connections among co-occurring tags
   if (cotagIds.length > 1) {
-    const idList = cotagIds.join(',');
-    const query2 = `
-      SELECT
-        pt1.tag_id,
-        t1.tag_text,
-        pt2.tag_id,
-        t2.tag_text,
-        COUNT(DISTINCT pt1.preprint_id) as cooccurrence_count
-      FROM preprint_tags pt1
-      JOIN preprint_tags pt2 ON pt1.preprint_id = pt2.preprint_id AND pt1.tag_id < pt2.tag_id
-      JOIN tags t1 ON pt1.tag_id = t1.id
-      JOIN tags t2 ON pt2.tag_id = t2.id
-      WHERE pt1.tag_id IN (${idList})
-        AND pt2.tag_id IN (${idList})
-        AND pt1.is_latest_version = 1
-        AND pt2.is_latest_version = 1
-      GROUP BY pt1.tag_id, t1.tag_text, pt2.tag_id, t2.tag_text
-      HAVING cooccurrence_count >= 3
-    `;
+    const query2 = buildCoTagConnectionsSql(cotagIds);
 
     const coTagConnectionsUrl = datasetteQueryUrl(query2);
     queryUrls.coTagConnectionsUrl = coTagConnectionsUrl;
@@ -412,7 +387,7 @@ const graphContainer = resize((width) => {
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
 ```js
-const currentTagIdQuery = `SELECT id FROM tags WHERE tag_text = '${selectedTag.replace(/'/g, "''")}'`;
+const currentTagIdQuery = buildTagIdLookupSql(selectedTag);
 const currentTagIdUrl = datasetteQueryUrl(currentTagIdQuery);
 const currentTagCooccurrenceUrl = tagCooccurrenceData?.queryUrls?.cooccurrenceUrl;
 const currentCoTagConnectionsUrl = tagCooccurrenceData?.queryUrls?.coTagConnectionsUrl;

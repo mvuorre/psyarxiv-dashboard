@@ -19,7 +19,8 @@
     "build": "observable build",
     "dev": "observable preview",
     "deploy": "observable deploy",
-    "observable": "observable"
+    "observable": "observable",
+    "probe-queries": "node scripts/probe-queries.js"
   },
   "dependencies": {
     "@observablehq/framework": "^1.13.3",

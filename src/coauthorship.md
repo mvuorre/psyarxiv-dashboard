@@ -10,12 +10,18 @@ import * as d3 from "npm:d3";
 
 ```js
 import {datasetteQueryUrl, datasetteSqlPageFromJsonUrl, datasetteSqlPageUrl} from "./data/queries.js";
+import {
+  buildCoauthorConnectionsSql,
+  buildContributorNameLookupSql,
+  buildDirectCoauthorsSql,
+  defaultCoauthorshipUserId
+} from "./data/network-queries.js";
 ```
 
 ```js
 const userId = view(Inputs.text({
   label: "OSF User ID",
-  value: "tdyix",
+  value: defaultCoauthorshipUserId,
   placeholder: "Enter OSF user ID"
 }));
 ```
@@ -28,20 +34,9 @@ const buttonClicks = view(Inputs.button("Show Network", {reduce: (i) => i + 1}))
 // Fetch coauthorship data when button is clicked
 const coauthorData = await (async () => {
   if (buttonClicks === 0) return null;
-  const escapedUserId = userId.replace(/'/g, "''");
 
   // Query 1: Direct coauthors with names
-  const query1 = `
-    SELECT c.osf_user_id, c.full_name, COUNT(DISTINCT pc1.preprint_id) as count
-    FROM preprint_contributors pc1
-    JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id != pc2.osf_user_id
-    JOIN contributors c ON pc2.osf_user_id = c.osf_user_id
-    WHERE pc1.osf_user_id = '${escapedUserId}'
-      AND pc1.bibliographic = 1 AND pc2.bibliographic = 1
-      AND pc1.is_latest_version = 1 AND pc2.is_latest_version = 1
-      AND c.full_name IS NOT NULL
-    GROUP BY c.osf_user_id, c.full_name
-  `;
+  const query1 = buildDirectCoauthorsSql(userId);
 
   const query1Url = datasetteQueryUrl(query1);
   const response1 = await fetch(query1Url);
@@ -56,7 +51,7 @@ const coauthorData = await (async () => {
   }
 
   // Get user's own name
-  const userQuery = `SELECT full_name FROM contributors_with_counts WHERE osf_user_id = '${escapedUserId}'`;
+  const userQuery = buildContributorNameLookupSql(userId);
   const userQueryUrl = datasetteQueryUrl(userQuery);
   const userResponse = await fetch(userQueryUrl);
   const userData = await userResponse.json();
@@ -88,19 +83,7 @@ const coauthorData = await (async () => {
 
   // Query 2: Connections among coauthors
   if (coauthorIds.length > 1) {
-    const idList = coauthorIds.map(id => `'${id}'`).join(',');
-    const query2 = `
-      SELECT c1.osf_user_id, c1.full_name, c2.osf_user_id, c2.full_name, COUNT(DISTINCT pc1.preprint_id) as count
-      FROM preprint_contributors pc1
-      JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id < pc2.osf_user_id
-      JOIN contributors c1 ON pc1.osf_user_id = c1.osf_user_id
-      JOIN contributors c2 ON pc2.osf_user_id = c2.osf_user_id
-      WHERE pc1.osf_user_id IN (${idList}) AND pc2.osf_user_id IN (${idList})
-        AND pc1.bibliographic = 1 AND pc2.bibliographic = 1
-        AND pc1.is_latest_version = 1 AND pc2.is_latest_version = 1
-        AND c1.full_name IS NOT NULL AND c2.full_name IS NOT NULL
-      GROUP BY c1.osf_user_id, c1.full_name, c2.osf_user_id, c2.full_name
-    `;
+    const query2 = buildCoauthorConnectionsSql(coauthorIds);
 
     const query2Url = datasetteQueryUrl(query2);
     queryUrls.query2Url = query2Url;
@@ -303,21 +286,10 @@ const graphContainer = resize((width) => {
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
 
 ```js
-const escapedUserId = userId.replace(/'/g, "''");
-const directCoauthorsQuery = `
-  SELECT c.osf_user_id, c.full_name, COUNT(DISTINCT pc1.preprint_id) as count
-  FROM preprint_contributors pc1
-  JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id != pc2.osf_user_id
-  JOIN contributors c ON pc2.osf_user_id = c.osf_user_id
-  WHERE pc1.osf_user_id = '${escapedUserId}'
-    AND pc1.bibliographic = 1 AND pc2.bibliographic = 1
-    AND pc1.is_latest_version = 1 AND pc2.is_latest_version = 1
-    AND c.full_name IS NOT NULL
-  GROUP BY c.osf_user_id, c.full_name
-`;
+const directCoauthorsQuery = buildDirectCoauthorsSql(userId);
 const directCoauthorsUrl = coauthorData?.queryUrls?.query1Url || datasetteQueryUrl(directCoauthorsQuery);
 
-const contributorNameLookupQuery = `SELECT full_name FROM contributors_with_counts WHERE osf_user_id = '${escapedUserId}'`;
+const contributorNameLookupQuery = buildContributorNameLookupSql(userId);
 const contributorNameLookupUrl = coauthorData?.queryUrls?.userQueryUrl || datasetteQueryUrl(contributorNameLookupQuery);
 
 const coauthorConnectionsUrl = coauthorData?.queryUrls?.query2Url;
