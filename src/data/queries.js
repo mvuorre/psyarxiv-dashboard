@@ -128,20 +128,9 @@ export const topTagsUrl = datasetteQueryUrl(topTagsSql);
 
 export const contributorsFirstAppearanceByDateSql = `
   SELECT
-    first_date as date,
-    COUNT(*) as count
-  FROM (
-    SELECT
-      pc.osf_user_id as contributor_id,
-      MIN(DATE(p.date_created)) as first_date
-    FROM preprints p
-    JOIN preprint_contributors pc ON pc.preprint_id = p.id
-    WHERE p.is_latest_version = 1
-      AND pc.bibliographic = 1
-      AND pc.is_latest_version = 1
-    GROUP BY pc.osf_user_id
-  )
-  GROUP BY date
+    date,
+    count
+  FROM dashboard_contributor_first_appearance_by_date
   ORDER BY date
 `;
 
@@ -216,24 +205,9 @@ export const contributorsByAffiliationPreprintUrl = datasetteQueryUrl(contributo
 
 export const affiliationsFirstAppearanceByDateSql = `
   SELECT
-    first_date as date,
-    COUNT(*) as count
-  FROM (
-    SELECT
-      i.id as institution_id,
-      MIN(DATE(p.date_created)) as first_date
-    FROM preprints p
-    JOIN preprint_contributors pc ON pc.preprint_id = p.id
-    JOIN contributor_affiliations ca ON pc.osf_user_id = ca.contributor_id
-    JOIN institutions i ON ca.institution_id = i.id
-    WHERE p.is_latest_version = 1
-      AND pc.bibliographic = 1
-      AND pc.is_latest_version = 1
-      AND ca.end_date IS NULL
-      AND i.name IS NOT NULL
-    GROUP BY i.id
-  )
-  GROUP BY date
+    date,
+    count
+  FROM dashboard_affiliation_first_appearance_by_date
   ORDER BY date
 `;
 
