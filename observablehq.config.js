@@ -17,6 +17,7 @@ export default {
         { name: "Preprints", path: "preprints" },
         { name: "Affiliations", path: "affiliations" },
         { name: "Contributors", path: "contributors" },
+        { name: "Coauthorship", path: "coauthorship-stats" },
         { name: "Subjects", path: "subjects" },
         { name: "Tags", path: "tags" },
         { name: "Licenses", path: "licenses" },
