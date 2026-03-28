@@ -90,21 +90,37 @@ export const buildContributorNameLookupSql = (osfUserId) => `
   WHERE osf_user_id = ${quoteSqlText(osfUserId)}
 `;
 
+const buildIncidentCoauthorEdgesSql = (osfUserId) => {
+  const quotedUserId = quoteSqlText(osfUserId);
+
+  return `
+    SELECT
+      target_osf_user_id AS neighbor_id,
+      shared_preprint_count
+    FROM coauthor_edges
+    WHERE source_osf_user_id = ${quotedUserId}
+
+    UNION ALL
+
+    SELECT
+      source_osf_user_id AS neighbor_id,
+      shared_preprint_count
+    FROM coauthor_edges
+    WHERE target_osf_user_id = ${quotedUserId}
+  `;
+};
+
 export const buildDirectCoauthorsSql = (osfUserId) => `
+  WITH incident_edges AS (
+    ${buildIncidentCoauthorEdgesSql(osfUserId)}
+  )
   SELECT
     c.osf_user_id,
     c.full_name,
-    COUNT(DISTINCT pc1.preprint_id) as count
-  FROM preprint_contributors pc1
-  JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id != pc2.osf_user_id
-  JOIN contributors c ON pc2.osf_user_id = c.osf_user_id
-  WHERE pc1.osf_user_id = ${quoteSqlText(osfUserId)}
-    AND pc1.bibliographic = 1
-    AND pc2.bibliographic = 1
-    AND pc1.is_latest_version = 1
-    AND pc2.is_latest_version = 1
-    AND c.full_name IS NOT NULL
-  GROUP BY c.osf_user_id, c.full_name
+    incident_edges.shared_preprint_count AS count
+  FROM incident_edges
+  JOIN contributors c ON c.osf_user_id = incident_edges.neighbor_id
+  WHERE c.full_name IS NOT NULL
 `;
 
 export const buildCoauthorConnectionsSql = (osfUserIds) => {
@@ -116,19 +132,13 @@ export const buildCoauthorConnectionsSql = (osfUserIds) => {
       c1.full_name,
       c2.osf_user_id,
       c2.full_name,
-      COUNT(DISTINCT pc1.preprint_id) as count
-    FROM preprint_contributors pc1
-    JOIN preprint_contributors pc2 ON pc1.preprint_id = pc2.preprint_id AND pc1.osf_user_id < pc2.osf_user_id
-    JOIN contributors c1 ON pc1.osf_user_id = c1.osf_user_id
-    JOIN contributors c2 ON pc2.osf_user_id = c2.osf_user_id
-    WHERE pc1.osf_user_id IN (${idList})
-      AND pc2.osf_user_id IN (${idList})
-      AND pc1.bibliographic = 1
-      AND pc2.bibliographic = 1
-      AND pc1.is_latest_version = 1
-      AND pc2.is_latest_version = 1
+      e.shared_preprint_count AS count
+    FROM coauthor_edges AS e
+    JOIN contributors AS c1 ON c1.osf_user_id = e.source_osf_user_id
+    JOIN contributors AS c2 ON c2.osf_user_id = e.target_osf_user_id
+    WHERE e.source_osf_user_id IN (${idList})
+      AND e.target_osf_user_id IN (${idList})
       AND c1.full_name IS NOT NULL
       AND c2.full_name IS NOT NULL
-    GROUP BY c1.osf_user_id, c1.full_name, c2.osf_user_id, c2.full_name
   `;
 };
