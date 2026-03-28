@@ -18,6 +18,8 @@ npm run dev
 
 By default the dashboard uses the production Datasette at `https://psyarxivdb.vuorre.com`.
 
+When you run the dashboard locally on `localhost`, it defaults to the local Datasette at `http://127.0.0.1:8001`.
+
 To point it at a local Datasette on `http://127.0.0.1:8001`, set:
 
 ```

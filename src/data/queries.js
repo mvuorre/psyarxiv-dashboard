@@ -1,5 +1,11 @@
+const localhostNames = new Set(["127.0.0.1", "localhost"]);
+
+const defaultDatasetteBaseUrl = localhostNames.has(globalThis.location?.hostname)
+  ? "http://127.0.0.1:8001"
+  : "https://psyarxivdb.vuorre.com";
+
 export const datasetteBaseUrl =
-  globalThis.process?.env?.DATASETTE_BASE_URL ?? "https://psyarxivdb.vuorre.com";
+  globalThis.process?.env?.DATASETTE_BASE_URL ?? defaultDatasetteBaseUrl;
 
 const datasetteUrl = (pathname, sql) => {
   const url = new URL(pathname, datasetteBaseUrl);
