@@ -151,6 +151,81 @@ export const topContributorsSql = `
 
 export const topContributorsUrl = datasetteQueryUrl(topContributorsSql);
 
+const coauthorDegreeCountsCte = `
+  degree_counts AS (
+    SELECT
+      osf_user_id,
+      COUNT(*) AS degree
+    FROM (
+      SELECT source_osf_user_id AS osf_user_id
+      FROM coauthor_edges
+
+      UNION ALL
+
+      SELECT target_osf_user_id AS osf_user_id
+      FROM coauthor_edges
+    )
+    GROUP BY osf_user_id
+  )
+`;
+
+const coauthorPreprintCountsCte = `
+  preprint_counts AS (
+    SELECT
+      osf_user_id,
+      COUNT(DISTINCT preprint_id) AS preprint_count
+    FROM preprint_contributors
+    WHERE bibliographic = 1
+      AND is_latest_version = 1
+    GROUP BY osf_user_id
+  )
+`;
+
+export const coauthorshipOverviewSql = `
+  WITH
+  ${coauthorDegreeCountsCte}
+  SELECT
+    COUNT(*) AS connected_authors,
+    (SELECT COUNT(*) FROM coauthor_edges) AS edge_count,
+    ROUND(AVG(degree), 2) AS avg_degree,
+    MAX(degree) AS max_degree
+  FROM degree_counts
+`;
+
+export const coauthorshipOverviewUrl = datasetteQueryUrl(coauthorshipOverviewSql);
+
+export const topCollaboratorsSql = `
+  WITH
+  ${coauthorDegreeCountsCte},
+  ${coauthorPreprintCountsCte}
+  SELECT
+    c.osf_user_id,
+    c.full_name,
+    degree_counts.degree AS collaborator_count,
+    COALESCE(preprint_counts.preprint_count, 0) AS preprint_count
+  FROM degree_counts
+  JOIN contributors AS c ON c.osf_user_id = degree_counts.osf_user_id
+  LEFT JOIN preprint_counts ON preprint_counts.osf_user_id = degree_counts.osf_user_id
+  WHERE c.full_name IS NOT NULL
+  ORDER BY collaborator_count DESC, preprint_count DESC, c.full_name
+  LIMIT 5000
+`;
+
+export const topCollaboratorsUrl = datasetteQueryUrl(topCollaboratorsSql);
+
+export const degreeDistributionSql = `
+  WITH
+  ${coauthorDegreeCountsCte}
+  SELECT
+    degree,
+    COUNT(*) AS author_count
+  FROM degree_counts
+  GROUP BY degree
+  ORDER BY degree
+`;
+
+export const degreeDistributionUrl = datasetteQueryUrl(degreeDistributionSql);
+
 export const contributorsByAffiliationContributorSql = `
   SELECT
     i.name as institution,
