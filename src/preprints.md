@@ -5,7 +5,13 @@ title: Preprints
 # PsyArXiv Preprints
 
 ```js
-import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeseries.js";
+import {
+  aggregateData,
+  availableYears,
+  filterByYear,
+  toCumulative,
+  timeSeriesChart
+} from "./components/timeseries.js";
 ```
 
 ```js
@@ -46,7 +52,15 @@ const preprintsCumulative = view(Inputs.radio(
 ```
 
 ```js
-const aggregatedPreprints = aggregateData(data, preprintsGranularity);
+const preprintsYear = view(Inputs.select(
+  ["All", ...availableYears(data)],
+  {label: "Year", value: "All"}
+));
+```
+
+```js
+const filteredPreprints = filterByYear(data, preprintsYear);
+const aggregatedPreprints = aggregateData(filteredPreprints, preprintsGranularity);
 const displayPreprints = preprintsCumulative === "cumulative" ? toCumulative(aggregatedPreprints) : aggregatedPreprints;
 ```
 
@@ -54,7 +68,7 @@ const displayPreprints = preprintsCumulative === "cumulative" ? toCumulative(agg
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>${preprintsCumulative === "cumulative" ? "Cumulative" : "New"} ${preprintsGranularity} preprints</h2>
+    <h2>${preprintsCumulative === "cumulative" ? "Cumulative" : "New"} ${preprintsGranularity} preprints${preprintsYear === "All" ? "" : ` in ${preprintsYear}`}</h2>
     ${resize((width) => timeSeriesChart(displayPreprints, {width, granularity: preprintsGranularity}))}
   </div>
 </div>

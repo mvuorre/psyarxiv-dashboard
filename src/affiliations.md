@@ -5,7 +5,13 @@ title: Affiliations
 # PsyArXiv Contributor Affiliations
 
 ```js
-import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeseries.js";
+import {
+  aggregateData,
+  availableYears,
+  filterByYear,
+  toCumulative,
+  timeSeriesChart
+} from "./components/timeseries.js";
 ```
 
 ```js
@@ -62,22 +68,31 @@ const affiliationsCumulative = view(Inputs.radio(
 ```
 
 ```js
-const aggregatedAffiliations = aggregateData(affiliationsData, affiliationsGranularity);
+const affiliationsYear = view(Inputs.select(
+  ["All", ...availableYears(affiliationsData, affiliationsOnPreprintsData)],
+  {label: "Year", value: "All"}
+));
+```
+
+```js
+const filteredAffiliationsData = filterByYear(affiliationsData, affiliationsYear);
+const filteredAffiliationsOnPreprintsData = filterByYear(affiliationsOnPreprintsData, affiliationsYear);
+const aggregatedAffiliations = aggregateData(filteredAffiliationsData, affiliationsGranularity);
 const displayAffiliations = affiliationsCumulative === "cumulative" ? toCumulative(aggregatedAffiliations) : aggregatedAffiliations;
 
-const aggregatedAffiliationsOnPreprints = aggregateData(affiliationsOnPreprintsData, affiliationsGranularity);
+const aggregatedAffiliationsOnPreprints = aggregateData(filteredAffiliationsOnPreprintsData, affiliationsGranularity);
 ```
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>${affiliationsCumulative === "cumulative" ? "Cumulative" : "New"} ${affiliationsGranularity} affiliations</h2>
+    <h2>${affiliationsCumulative === "cumulative" ? "Cumulative" : "New"} ${affiliationsGranularity} affiliations${affiliationsYear === "All" ? "" : ` in ${affiliationsYear}`}</h2>
     ${resize((width) => timeSeriesChart(displayAffiliations, {width, granularity: affiliationsGranularity}))}
   </div>
 </div>
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>Total ${affiliationsGranularity} affiliations</h2>
+    <h2>Total ${affiliationsGranularity} affiliations${affiliationsYear === "All" ? "" : ` in ${affiliationsYear}`}</h2>
     ${resize((width) => timeSeriesChart(aggregatedAffiliationsOnPreprints, {width, granularity: affiliationsGranularity}))}
   </div>
 </div>

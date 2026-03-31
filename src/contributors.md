@@ -5,7 +5,13 @@ title: Contributors
 # PsyArXiv Contributors
 
 ```js
-import {aggregateData, toCumulative, timeSeriesChart} from "./components/timeseries.js";
+import {
+  aggregateData,
+  availableYears,
+  filterByYear,
+  toCumulative,
+  timeSeriesChart
+} from "./components/timeseries.js";
 ```
 
 ```js
@@ -63,24 +69,33 @@ const contributorsCumulative = view(Inputs.radio(
 ```
 
 ```js
-const aggregatedContributors = aggregateData(contributorData, contributorsGranularity);
+const contributorsYear = view(Inputs.select(
+  ["All", ...availableYears(contributorData, contributorsOnPreprintsData)],
+  {label: "Year", value: "All"}
+));
+```
+
+```js
+const filteredContributorData = filterByYear(contributorData, contributorsYear);
+const filteredContributorsOnPreprintsData = filterByYear(contributorsOnPreprintsData, contributorsYear);
+const aggregatedContributors = aggregateData(filteredContributorData, contributorsGranularity);
 const displayContributors = contributorsCumulative === "cumulative" ? toCumulative(aggregatedContributors) : aggregatedContributors;
 
-const aggregatedContributorsOnPreprints = aggregateData(contributorsOnPreprintsData, contributorsGranularity);
+const aggregatedContributorsOnPreprints = aggregateData(filteredContributorsOnPreprintsData, contributorsGranularity);
 ```
 
 <!-- Time series -->
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>${contributorsCumulative === "cumulative" ? "Cumulative" : "New"} ${contributorsGranularity} contributors</h2>
+    <h2>${contributorsCumulative === "cumulative" ? "Cumulative" : "New"} ${contributorsGranularity} contributors${contributorsYear === "All" ? "" : ` in ${contributorsYear}`}</h2>
     ${resize((width) => timeSeriesChart(displayContributors, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
 
 <div class="grid grid-cols-1">
   <div class="card">
-    <h2>Total ${contributorsGranularity} contributors</h2>
+    <h2>Total ${contributorsGranularity} contributors${contributorsYear === "All" ? "" : ` in ${contributorsYear}`}</h2>
     ${resize((width) => timeSeriesChart(aggregatedContributorsOnPreprints, {width, granularity: contributorsGranularity}))}
   </div>
 </div>
