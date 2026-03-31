@@ -2,6 +2,7 @@
 
 - Separate tag network tool page
 - More robust dev/prod Datasette backend switching
+- Simplified / minimized codebase
 
 ## 0.1.1
 
