@@ -1,7 +1,21 @@
 // See https://observablehq.com/framework/config for documentation.
+const productionDatasetteBaseUrl = "https://psyarxivdb.vuorre.com";
+const localDatasetteBaseUrl = "http://127.0.0.1:8001";
+
+// Flip this only for local `observable preview`; build and deploy always use production.
+const useProductionDatasetteInPreview = false;
+const isPreviewCommand = process.argv.some((arg) => arg === "preview");
+const datasetteBaseUrl =
+  isPreviewCommand && !useProductionDatasetteInPreview
+    ? localDatasetteBaseUrl
+    : productionDatasetteBaseUrl;
+
+process.env.DATASETTE_BASE_URL = datasetteBaseUrl;
+const datasetteHeadScript = `<script>globalThis.__DATASETTE_BASE_URL__ = ${JSON.stringify(datasetteBaseUrl)};</script>`;
+
 export default {
   title: "PsyArXiv Dashboard",
-  head: '<link rel="icon" href="pax-logo-32.png" type="image/png" sizes="32x32">',
+  head: `${datasetteHeadScript}<link rel="icon" href="pax-logo-32.png" type="image/png" sizes="32x32">`,
   root: "src",
   theme: "dashboard",
   header: '<nav style="display: flex; gap: 1.5rem; padding: 0.5rem 0; align-items: center;"><a href="/"><img src="pax-dashboard-small.png" style="height: 2rem;"></img></a></nav>',
@@ -28,7 +42,8 @@ export default {
       name: "Tools",
       open: true,
       pages: [
-        { name: "Coauthorship network", path: "coauthorship" }
+        { name: "Coauthorship network", path: "coauthorship" },
+        { name: "Tag network", path: "tag-network" }
       ]
     }
   ]
