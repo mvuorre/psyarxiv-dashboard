@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Separate tag network tool page
+- More robust dev/prod Datasette backend switching
+
 ## 0.1.1
 
 - Reuse query URLs in data constructors & pages
