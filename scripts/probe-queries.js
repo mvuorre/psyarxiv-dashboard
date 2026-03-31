@@ -27,7 +27,6 @@ const staticQueries = [
   {query: "subjects", sql: queries.subjectsSql, warnMs: 500},
   {query: "top-tags", sql: queries.topTagsSql, warnMs: 250},
   {query: "contributors-first-appearance", sql: queries.contributorsFirstAppearanceByDateSql, warnMs: 750},
-  {query: "contributors-by-date", sql: queries.contributorsByDateSql, warnMs: 250},
   {query: "contributors-on-preprints", sql: queries.contributorsOnPreprintsByDateSql, warnMs: 500},
   {query: "top-contributors", sql: queries.topContributorsSql, warnMs: 500},
   {query: "coauthorship-overview", sql: queries.coauthorshipOverviewSql, warnMs: 500, expectedMinRows: 1},
@@ -36,8 +35,7 @@ const staticQueries = [
   {query: "contributors-by-affiliation-contributor", sql: queries.contributorsByAffiliationContributorSql, warnMs: 500},
   {query: "contributors-by-affiliation-preprint", sql: queries.contributorsByAffiliationPreprintSql, warnMs: 500},
   {query: "affiliations-first-appearance", sql: queries.affiliationsFirstAppearanceByDateSql, warnMs: 750},
-  {query: "affiliations-on-preprints", sql: queries.affiliationsOnPreprintsByDateSql, warnMs: 500},
-  {query: "affiliations-by-date", sql: queries.affiliationsByDateSql, warnMs: 250}
+  {query: "affiliations-on-preprints", sql: queries.affiliationsOnPreprintsByDateSql, warnMs: 500}
 ];
 
 const dynamicFixtures = {

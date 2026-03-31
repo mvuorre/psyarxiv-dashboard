@@ -2,15 +2,12 @@
 const productionDatasetteBaseUrl = "https://psyarxivdb.vuorre.com";
 const localDatasetteBaseUrl = "http://127.0.0.1:8001";
 
-// Flip this only for local `observable preview`; build and deploy always use production.
-const useProductionDatasetteInPreview = false;
 const isPreviewCommand = process.argv.some((arg) => arg === "preview");
 const datasetteBaseUrl =
-  isPreviewCommand && !useProductionDatasetteInPreview
-    ? localDatasetteBaseUrl
-    : productionDatasetteBaseUrl;
+  process.env.DATASETTE_BASE_URL ??
+  (isPreviewCommand ? localDatasetteBaseUrl : productionDatasetteBaseUrl);
 
-process.env.DATASETTE_BASE_URL = datasetteBaseUrl;
+process.env.DATASETTE_BASE_URL ??= datasetteBaseUrl;
 const datasetteHeadScript = `<script>globalThis.__DATASETTE_BASE_URL__ = ${JSON.stringify(datasetteBaseUrl)};</script>`;
 
 export default {

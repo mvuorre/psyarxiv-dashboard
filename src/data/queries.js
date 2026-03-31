@@ -15,14 +15,6 @@ export const datasetteQueryUrl = (sql) => datasetteUrl("/preprints.json", sql);
 
 export const datasetteSqlPageUrl = (sql) => datasetteUrl("/preprints", sql);
 
-export const datasetteSqlPageFromJsonUrl = (jsonUrl) => {
-  const url = new URL(jsonUrl);
-  if (url.pathname.endsWith(".json")) {
-    url.pathname = url.pathname.slice(0, -5);
-  }
-  return url.toString();
-};
-
 export const preprintsByDateSql = `
   SELECT
     DATE(date_created) as date,
@@ -116,17 +108,6 @@ export const contributorsFirstAppearanceByDateSql = `
 `;
 
 export const contributorsFirstAppearanceByDateUrl = datasetteQueryUrl(contributorsFirstAppearanceByDateSql);
-
-export const contributorsByDateSql = `
-  SELECT
-    DATE(date_registered) as date,
-    COUNT(*) as count
-  FROM contributors
-  GROUP BY date
-  ORDER BY date
-`;
-
-export const contributorsByDateUrl = datasetteQueryUrl(contributorsByDateSql);
 
 export const contributorsOnPreprintsByDateSql = `
   SELECT
@@ -271,15 +252,3 @@ export const affiliationsOnPreprintsByDateSql = `
 `;
 
 export const affiliationsOnPreprintsByDateUrl = datasetteQueryUrl(affiliationsOnPreprintsByDateSql);
-
-export const affiliationsByDateSql = `
-  SELECT
-    DATE(ca.start_date) as date,
-    COUNT(*) as count
-  FROM contributor_affiliations ca
-  WHERE ca.start_date IS NOT NULL
-  GROUP BY DATE(ca.start_date)
-  ORDER BY date
-`;
-
-export const affiliationsByDateUrl = datasetteQueryUrl(affiliationsByDateSql);
