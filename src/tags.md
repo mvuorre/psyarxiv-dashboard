@@ -5,31 +5,21 @@ title: PsyArXiv Tags
 # PsyArXiv Tags
 
 ```js
-import {
-  datasetteQueryUrl,
-  datasetteSqlPageFromJsonUrl,
-  datasetteSqlPageUrl,
-  topTagsSql,
-  topTagsUrl
-} from "./data/queries.js";
-import {
-  buildCoTagConnectionsSql,
-  buildTagCooccurrenceSql,
-  buildTagIdLookupSql,
-  defaultTagName,
-  defaultTagNetworkSize,
-  maxTagNetworkSize
-} from "./data/network-queries.js";
+import {datasetteSqlPageUrl, topTagsSql, topTagsUrl} from "./data/queries.js";
 ```
 
 ```js
 const tags = FileAttachment("data/top-tags.csv").csv({typed: true});
 ```
 
-<div class="grid grid-cols-1">
+<div class="grid grid-cols-2">
   <div class="card">
     <h2>Tags (≥10 uses)</h2>
     <span class="big">${tags.length.toLocaleString()}</span>
+  </div>
+  <div class="card">
+    <h2>Interactive Tool</h2>
+    <p><a href="./tag-network">Open the tag co-occurrence network</a></p>
   </div>
 </div>
 
@@ -88,310 +78,11 @@ Inputs.table(search, {
 
 </div>
 
-## Tag Co-occurrence Network
-
-```js
-import * as d3 from "npm:d3";
-```
-
-```js
-const tagsSorted = [...tags].sort((a, b) => a.tag_text.localeCompare(b.tag_text));
-```
-
-```js
-const tagInput = view(Inputs.select(tagsSorted.map(d => d.tag_text), {
-  label: "Select tag (type to search)",
-  value: defaultTagName,
-  width: 300
-}));
-```
-
-```js
-const selectedTag = tagInput || defaultTagName;
-```
-
-```js
-const networkSize = view(Inputs.range([10, maxTagNetworkSize], {
-  value: defaultTagNetworkSize,
-  step: 10,
-  label: "Number of co-occurring tags to show"
-}));
-```
-
-```js
-const networkButtonClicks = view(Inputs.button("Show Network", {reduce: (i) => i + 1}));
-```
-
-```js
-// Fetch tag co-occurrence data when button is clicked
-const tagCooccurrenceData = await (async () => {
-  if (networkButtonClicks === 0) return null;
-
-  // Get the tag_id for the selected tag
-  const tagIdQuery = buildTagIdLookupSql(selectedTag);
-  const tagIdUrl = datasetteQueryUrl(tagIdQuery);
-  const tagIdResponse = await fetch(tagIdUrl);
-  const tagIdData = await tagIdResponse.json();
-
-  if (!tagIdData.rows || tagIdData.rows.length === 0) {
-    return {
-      nodes: [],
-      links: [],
-      queryUrls: {tagIdUrl}
-    };
-  }
-
-  const selectedTagId = tagIdData.rows[0][0];
-
-  // Query: Get co-occurring tags (tags that appear on same preprints)
-  const query = buildTagCooccurrenceSql(selectedTagId, networkSize);
-
-  const cooccurrenceUrl = datasetteQueryUrl(query);
-  const response = await fetch(cooccurrenceUrl);
-  const data = await response.json();
-
-  if (!data.rows || data.rows.length === 0) {
-    return {
-      nodes: [],
-      links: [],
-      queryUrls: {tagIdUrl, cooccurrenceUrl}
-    };
-  }
-
-  // Build nodes
-  const nodes = [
-    { id: selectedTagId, name: selectedTag, isCenter: true }
-  ];
-
-  const links = [];
-  const cotagIds = [];
-  const queryUrls = {tagIdUrl, cooccurrenceUrl};
-
-  data.rows.forEach(row => {
-    const [cotagId, cotagName, count] = row;
-    nodes.push({
-      id: cotagId,
-      name: cotagName,
-      isCenter: false
-    });
-    links.push({
-      source: selectedTagId,
-      target: cotagId,
-      value: count
-    });
-    cotagIds.push(cotagId);
-  });
-
-  // Query 2: Get connections among co-occurring tags
-  if (cotagIds.length > 1) {
-    const query2 = buildCoTagConnectionsSql(cotagIds);
-
-    const coTagConnectionsUrl = datasetteQueryUrl(query2);
-    queryUrls.coTagConnectionsUrl = coTagConnectionsUrl;
-    const response2 = await fetch(coTagConnectionsUrl);
-    const data2 = await response2.json();
-
-    data2.rows.forEach(row => {
-      const [id1, name1, id2, name2, count] = row;
-      links.push({
-        source: id1,
-        target: id2,
-        value: count
-      });
-    });
-  }
-
-  return { nodes, links, queryUrls };
-})();
-```
-
-```js
-function forceGraph(data, {
-  width = 640,
-  height = 600,
-  nodeRadius = 5,
-  linkStrength = 0.08,
-  linkDistance = 120,
-  chargeStrength = -400
-} = {}) {
-  if (!data || !data.nodes || data.nodes.length === 0) {
-    const svg = d3.create("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", [0, 0, width, height]);
-
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", height / 2)
-      .attr("text-anchor", "middle")
-      .attr("fill", "currentColor")
-      .text(data === null ? "Click 'Show Network' to load data" : "No co-occurrence data available");
-
-    return svg.node();
-  }
-
-  const links = data.links.map(d => ({...d}));
-  const nodes = data.nodes.map(d => ({...d}));
-
-  const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links)
-      .id(d => d.id)
-      .distance(linkDistance)
-      .strength(linkStrength))
-    .force("charge", d3.forceManyBody().strength(chargeStrength))
-    .force("x", d3.forceX(width / 2).strength(0.05))
-    .force("y", d3.forceY(height / 2).strength(0.05))
-    .force("collide", d3.forceCollide(nodeRadius * 2));
-
-  const svg = d3.create("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
-
-  const g = svg.append("g");
-
-  const zoom = d3.zoom()
-    .scaleExtent([0.1, 4])
-    .on("zoom", (event) => {
-      g.attr("transform", event.transform);
-    });
-
-  svg.call(zoom);
-
-  const link = g.append("g")
-    .attr("stroke", "var(--theme-foreground-faint)")
-    .attr("stroke-opacity", 0.3)
-    .selectAll("line")
-    .data(links)
-    .join("line")
-    .attr("stroke-width", d => Math.sqrt(d.value));
-
-  const node = g.append("g")
-    .attr("stroke", "#fff")
-    .attr("stroke-width", 1.5)
-    .selectAll("circle")
-    .data(nodes)
-    .join("circle")
-    .attr("r", d => d.isCenter ? nodeRadius * 2 : nodeRadius)
-    .attr("fill", d => d.isCenter ? "#ff6b6b" : "#4dabf7")
-    .call(drag(simulation));
-
-  const label = g.append("g")
-    .selectAll("text")
-    .data(nodes)
-    .join("text")
-    .text(d => d.name)
-    .attr("font-size", d => d.isCenter ? 12 : 10)
-    .attr("font-weight", d => d.isCenter ? "bold" : "normal")
-    .attr("fill", "currentColor")
-    .attr("dx", 8)
-    .attr("dy", 4);
-
-  node.append("title")
-    .text(d => d.name);
-
-  simulation.on("tick", () => {
-    link
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y);
-
-    node
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y);
-
-    label
-      .attr("x", d => d.x)
-      .attr("y", d => d.y);
-  });
-
-  function drag(simulation) {
-    function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    }
-
-    function dragged(event) {
-      const padding = 20;
-      event.subject.fx = Math.max(padding, Math.min(width - padding, event.x));
-      event.subject.fy = Math.max(padding, Math.min(height - padding, event.y));
-    }
-
-    function dragended(event) {
-      if (!event.active) simulation.alphaTarget(0);
-      event.subject.fx = null;
-      event.subject.fy = null;
-    }
-
-    return d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended);
-  }
-
-  return svg.node();
-}
-```
-
-```js
-function downloadSVG(svgElement, filename) {
-  const svgData = new XMLSerializer().serializeToString(svgElement);
-  const blob = new Blob([svgData], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-```
-
-```js
-const graphContainer = resize((width) => {
-  const nodeCount = tagCooccurrenceData?.nodes?.length || 0;
-  const height = Math.max(600, nodeCount > 50 ? 800 : 600);
-  const svgNode = forceGraph(tagCooccurrenceData, {width, height});
-
-  const container = html`<div>
-    ${tagCooccurrenceData && tagCooccurrenceData.nodes.length > 0 ? html`
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
-        <p style="font-size: 0.9em; color: #666; margin: 0;">
-          ${tagCooccurrenceData.nodes.length - 1} co-occurring tags, ${tagCooccurrenceData.links.filter(d => d.source === tagCooccurrenceData.nodes[0].id || d.target === tagCooccurrenceData.nodes[0].id).length} connections
-        </p>
-        <button onclick=${() => downloadSVG(svgNode, `tag-cooccurrence-${selectedTag.replace(/[^a-z0-9]/gi, '-')}.svg`)} style="padding: 0.5em 1em; cursor: pointer;">
-          Save as SVG
-        </button>
-      </div>
-    ` : ''}
-    ${svgNode}
-  </div>`;
-
-  return container;
-});
-```
-
-<div class="grid grid-cols-1">
-  <div class="card">
-    <h2>Tag Co-occurrence Network</h2>
-    ${graphContainer}
-  </div>
-</div>
-
 ---
 
 ## Methodology and Data Notes
 
 Data: [PsyArXiv](https://osf.io/preprints/psyarxiv) via [psyarxivdb.vuorre.com](https://psyarxivdb.vuorre.com).
-
-```js
-const currentTagIdQuery = buildTagIdLookupSql(selectedTag);
-const currentTagIdUrl = datasetteQueryUrl(currentTagIdQuery);
-const currentTagCooccurrenceUrl = tagCooccurrenceData?.queryUrls?.cooccurrenceUrl;
-const currentCoTagConnectionsUrl = tagCooccurrenceData?.queryUrls?.coTagConnectionsUrl;
-```
 
 ```js
 html`<div>
@@ -403,40 +94,11 @@ html`<div>
       |
       <a href="${datasetteSqlPageUrl(topTagsSql)}">SQL page</a>
     </li>
-    <li>
-      Tag ID lookup (current selection):
-      <a href="${currentTagIdUrl}">JSON</a>
-      |
-      <a href="${datasetteSqlPageUrl(currentTagIdQuery)}">SQL page</a>
-    </li>
-    ${currentTagCooccurrenceUrl
-      ? html`<li>
-          Co-occurring tags (current selection):
-          <a href="${currentTagCooccurrenceUrl}">JSON</a>
-          |
-          <a href="${datasetteSqlPageFromJsonUrl(currentTagCooccurrenceUrl)}">SQL page</a>
-        </li>`
-      : html`<li>Co-occurring tags URL is generated after clicking "Show Network".</li>`}
-    ${currentCoTagConnectionsUrl
-      ? html`<li>
-          Co-tag connections (current selection):
-          <a href="${currentCoTagConnectionsUrl}">JSON</a>
-          |
-          <a href="${datasetteSqlPageFromJsonUrl(currentCoTagConnectionsUrl)}">SQL page</a>
-        </li>`
-      : html`<li>Co-tag connections URL is generated after clicking "Show Network".</li>`}
   </ul>
 </div>`
 ```
 
-Only tags with 10 or more uses are shown (3,425 tags, filtering out 94% of one-off tags).
-
-Tag Co-occurrence Network:
-- Shows the selected tag (center, red) and up to N most frequently co-occurring tags (configurable, 10-100)
-- Link thickness represents the number of preprints where tags appear together
-- Only considers latest versions of preprints
-- Connections among co-occurring tags (non-center nodes) are shown if they co-occur on 3+ preprints
-- Graph is interactive: zoom with scroll, drag nodes to rearrange
+Only tags with 10 or more uses are shown on this page (${tags.length.toLocaleString()} tags).
 
 Limitations: Tags are user-generated and self-reported by preprint authors. This means:
 - Tag naming is inconsistent (e.g., "decision making" vs "decision-making", "well-being" vs "wellbeing")
